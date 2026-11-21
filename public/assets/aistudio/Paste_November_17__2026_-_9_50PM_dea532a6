@@ -1,0 +1,1414 @@
+# MASTER BUILD PROMPT: NEPAL'S VERIFIED JOB & FREELANCING ECOSYSTEM title and name is [KaamSetu]
+
+## 1. YOUR ROLE
+
+Act as a Senior Full-Stack Software Engineer, Senior Product Designer, UX Architect, Database Architect, and AI Product Engineer.
+
+Your responsibility is to design and develop a complete, modern, responsive, production-oriented web application for a Nepali employment and freelancing platform.
+
+Do not create just a landing page or a static UI prototype. Build a functional application with interconnected pages, authentication flows, dashboards, database architecture, user permissions, and realistic application workflows.
+
+The application should be designed for the Nepali market, particularly students, unemployed youths, freelancers, skilled workers, startups, small businesses, companies, and individuals looking to hire talent.
+
+## 2. PRODUCT VISION
+
+Build a platform that connects people looking for work with people offering work.
+
+The platform eliminates:
+- Traditional freelancing bidding wars.
+- Unnecessary competition for basic jobs.
+- Scattered job advertisements on Facebook and other social media.
+- Difficulty verifying candidates' academic qualifications.
+- Difficulty finding trustworthy local workers.
+- Time-consuming recruitment processes.
+
+Instead, introduce a verified, intelligent, direct-matching employment ecosystem.
+
+A job seeker creates a verified profile, uploads academic certificates, adds skills, and receives automatically matched opportunities.
+
+An employer creates a vacancy or short-term task, defines requirements, and discovers qualified candidates directly.
+
+The platform should feel like a combination of a modern recruitment platform, a professional networking application, and a local gig marketplace.
+
+### Core Product Philosophy
+
+"Your Skills. Your Qualifications. Your Opportunities."
+
+The experience should make finding work feel simple, transparent, accessible, and motivating.
+
+## 3. PLATFORM NAME AND BRANDING
+
+Use the temporary product name:
+
+"KAAMSETU"
+
+Tagline: "Connecting Skills to Opportunities."
+
+The name and branding should be easy to change later.
+
+Brand personality:
+- Trustworthy.
+- Youth-oriented.
+- Modern.
+- Energetic.
+- Professional.
+- Locally relevant.
+
+Use a premium visual identity with:
+- Deep navy or charcoal backgrounds.
+- Vibrant emerald green or electric blue as primary accents.
+- White and soft-gray typography.
+- Subtle gradients.
+- Rounded cards.
+- Smooth micro-interactions.
+- Clean icons.
+- Professional illustrations where necessary.
+
+Support both dark mode and light mode, with dark mode as the default.
+
+## 4. USER ROLES AND PERMISSIONS
+
+Create three distinct account types.
+
+### A. Job Seeker / Freelancer
+
+Users looking for full-time employment, part-time work, internships, freelance projects, or short-term gigs.
+
+Capabilities:
+- Create a personal account.
+- Build a digital professional profile.
+- Upload citizenship identification for identity verification.
+- Upload academic qualifications.
+- Add skills and work experience.
+- Add portfolio projects.
+- Receive personalized job recommendations.
+- Search and filter jobs.
+- Apply directly to opportunities.
+- Express interest in micro-tasks.
+- Save jobs.
+- Track applications.
+- Communicate with employers.
+- Receive notifications.
+- View profile verification status.
+
+### B. Employer / Task Poster
+
+Companies, startups, agencies, business owners, organizations, and individuals who need workers.
+
+Capabilities:
+- Create an employer account.
+- Create a company or individual hiring profile.
+- Verify their organization or identity.
+- Post full-time and part-time vacancies.
+- Post internships and freelance projects.
+- Post local micro-tasks.
+- Define educational requirements.
+- Define required skills.
+- Define location and compensation.
+- Discover matching candidates.
+- Filter candidates by education, skills, location, and verification.
+- View candidate profiles and authorized credentials.
+- Shortlist candidates.
+- Contact candidates.
+- Manage applications.
+- Update job status.
+- Mark positions as filled.
+
+### C. Platform Administrator
+
+Create a protected administration dashboard.
+
+Capabilities:
+- Manage users.
+- Review identity verification requests.
+- Review academic qualification verification requests.
+- Manage employers.
+- Approve or reject job advertisements.
+- Moderate suspicious listings.
+- Manage reports and complaints.
+- Suspend fraudulent accounts.
+- View platform analytics.
+- Manage categories and skills.
+- Monitor verification queues.
+
+Enforce role-based access control throughout the application.
+
+A user must never access another role's restricted dashboard or administrative functionality.
+
+## 5. AUTHENTICATION AND ONBOARDING
+
+Create an attractive authentication experience.
+
+Include:
+- Email registration.
+- Email/password login.
+- Phone number registration.
+- OTP verification interface.
+- Forgot password.
+- Password reset.
+- Logout.
+- Protected routes.
+
+Where supported, prepare the architecture for Nepal-based phone authentication.
+
+### Onboarding Flow
+
+After registration, ask the user to choose:
+
+1. I am looking for work.
+2. I want to hire people.
+
+For job seekers, collect:
+- Full name.
+- Profile photograph.
+- Phone number.
+- Email.
+- Province.
+- District.
+- Municipality.
+- Current location.
+- Preferred work location.
+- Date of birth, if necessary.
+- Education level.
+- Skills.
+- Employment preference.
+
+For employers, collect:
+- Organization or individual name.
+- Employer type.
+- Business category.
+- Contact person.
+- Phone number.
+- Email.
+- Company location.
+- Website or social media link.
+- Organization verification documents, where applicable.
+
+Use a multi-step onboarding wizard with progress indicators.
+
+Allow users to save progress and complete their profiles later.
+
+## 6. SCREEN-BY-SCREEN UI/UX REQUIREMENTS
+
+Build all screens as connected, functional interfaces.
+
+### SCREEN 1: PUBLIC LANDING PAGE
+
+Create a premium, modern landing page.
+
+Navigation bar:
+- KAAMSETU logo.
+- Find Jobs.
+- Find Gigs.
+- For Employers.
+- How It Works.
+- About Us.
+- Login.
+- Get Started.
+
+Hero section:
+
+Headline:
+"Your Skills Deserve the Right Opportunity."
+
+Supporting text:
+"Discover verified jobs, connect with trusted employers, and turn your qualifications into real opportunities. No bidding wars. Just meaningful connections."
+
+Primary CTA: Find Opportunities.
+
+Secondary CTA: Hire Talent.
+
+Include:
+- Modern illustration showing a job seeker and employer connecting.
+- Animated statistics section.
+- Verified profile explanation.
+- Smart matching explanation.
+- Micro-task marketplace preview.
+- Featured job cards.
+- Featured categories.
+- How It Works section.
+- Employer benefits.
+- Job seeker testimonials using clearly labeled sample content.
+- FAQ section.
+- Footer with legal and contact links.
+
+Add smooth scrolling and subtle entrance animations.
+
+Do not invent real platform statistics. Use clearly marked demo data until actual data exists.
+
+### SCREEN 2: JOB SEEKER DASHBOARD
+
+Create a personalized dashboard.
+
+Top navigation:
+- Logo.
+- Search.
+- Notifications.
+- Messages.
+- Profile avatar.
+
+Sidebar:
+- Overview.
+- Find Jobs.
+- Micro-Tasks.
+- My Applications.
+- Saved Opportunities.
+- My Profile.
+- Certificate Vault.
+- Messages.
+- Settings.
+
+Dashboard greeting:
+
+"Good morning, [User Name]!"
+
+Show profile completion percentage.
+
+Summary cards:
+- Profile Verification Status.
+- Total Applications.
+- New Job Matches.
+- Saved Opportunities.
+
+Main content:
+
+A. Recommended For You
+
+Display personalized job cards based on:
+- Academic qualifications.
+- Skills.
+- Experience.
+- Preferred location.
+- Salary expectations.
+- Employment preferences.
+
+Each card should show:
+- Job title.
+- Company name.
+- Company verification badge.
+- Location.
+- Salary range.
+- Employment type.
+- Required education.
+- Required skills.
+- Match percentage.
+- Posted date.
+- Apply Now button.
+- Save button.
+
+B. Quick Opportunities
+
+Display recently posted micro-tasks nearby.
+
+C. Profile Improvement
+
+Suggest missing information that could improve matching.
+
+D. Recent Activity
+
+Display application updates and notifications.
+
+### SCREEN 3: DIGITAL PROFILE AND CERTIFICATE VAULT
+
+This is one of the most important parts of the platform.
+
+Create a professional digital resume with a secure document vault.
+
+Profile sections:
+
+1. Personal Information.
+2. Profile Photograph.
+3. Professional Headline.
+4. About Me.
+5. Education.
+6. Skills.
+7. Work Experience.
+8. Portfolio.
+9. Languages.
+10. Preferred Employment.
+11. Location Preferences.
+12. Verification Status.
+
+### Academic Certificate Vault
+
+Allow users to upload:
+
+- SEE certificates.
+- +2 certificates.
+- Bachelor's certificates.
+- Master's certificates.
+- Diploma certificates.
+- Technical training certificates.
+- Vocational qualifications.
+- Professional licenses.
+
+Each document should contain:
+- Document title.
+- Qualification type.
+- Institution name.
+- Board or university.
+- Completion year.
+- Grade, GPA, or percentage, if applicable.
+- Document file.
+- Verification status.
+- Submission date.
+
+Document verification statuses:
+
+- Not Submitted.
+- Pending Review.
+- Verified.
+- Rejected.
+- Requires Resubmission.
+
+Allow users to preview their documents, replace rejected files, and track verification progress.
+
+### Citizenship Identity Verification
+
+Create a separate secure identity verification section.
+
+Allow users to submit:
+- Nepali Citizenship Certificate (Nagarikta).
+- Other approved identity documents where supported.
+
+Display:
+- Identity verification status.
+- Submission date.
+- Verification feedback.
+- Resubmission option.
+
+IMPORTANT SECURITY REQUIREMENTS:
+
+- Never expose citizenship images or sensitive identity information publicly.
+- Store documents in private, access-controlled storage.
+- Use temporary signed URLs for authorized document viewing.
+- Restrict document access to authorized verification personnel.
+- Never display citizenship numbers in public profiles.
+- Obtain explicit consent before processing identity documents.
+- Do not use uploaded documents for unrelated AI training.
+- Maintain access logs.
+- Allow users to request document deletion, subject to applicable legal retention requirements.
+
+A verified badge must only appear after an actual verification decision. Uploading a document must never automatically make a user verified.
+
+### Public Profile Preview
+
+Create a public-facing resume view that employers can access with appropriate permissions.
+
+Display verified qualifications, relevant skills, experience, and portfolio information.
+
+Never expose private identity documents or unnecessary personal information.
+
+## 7. SCREEN 4: SMART JOB DISCOVERY
+
+Create a modern job discovery interface.
+
+Page title:
+"Find Opportunities That Match Your Potential."
+
+Include:
+- Search bar.
+- Filter panel.
+- Job category selector.
+- Location selector.
+- Employment type selector.
+- Education requirement filter.
+- Salary range.
+- Skill filters.
+- Experience filters.
+- Remote/on-site/hybrid filter.
+
+Job categories should include:
+- Information Technology.
+- Graphic Design.
+- Digital Marketing.
+- Accounting and Finance.
+- Education and Teaching.
+- Engineering.
+- Hospitality and Tourism.
+- Healthcare.
+- Construction.
+- Administration.
+- Sales.
+- Customer Support.
+- Agriculture.
+- Creative Industries.
+- General Labor.
+- Other.
+
+### Smart Matching Engine
+
+Build an initial rule-based matching engine that can later be upgraded to AI.
+
+Matching factors:
+
+- Required education compatibility.
+- Skills compatibility.
+- Experience compatibility.
+- Location compatibility.
+- Employment type compatibility.
+- Availability compatibility.
+
+Use configurable weighted scoring.
+
+Example initial weights:
+- Skills: 35%.
+- Education: 25%.
+- Experience: 15%.
+- Location: 15%.
+- Employment preference and availability: 10%.
+
+Normalize the score to 0–100%.
+
+Display:
+- 90–100%: Excellent Match.
+- 75–89%: Strong Match.
+- 50–74%: Potential Match.
+- Below 50%: Lower Match.
+
+Clearly communicate that match scores are recommendations, not guarantees of hiring suitability.
+
+Never automatically reject candidates based only on their score.
+
+Allow employers to adjust job requirements and review all applicants.
+
+### Job Detail Page
+
+Include:
+- Job title.
+- Employer information.
+- Employer verification badge.
+- Job description.
+- Responsibilities.
+- Required qualifications.
+- Required skills.
+- Salary or payment range.
+- Work location.
+- Employment type.
+- Deadline.
+- Benefits.
+- Number of openings.
+- Application requirements.
+
+Buttons:
+- Apply Now.
+- Save Job.
+- Contact Employer.
+
+Application submission should use a confirmation modal.
+
+Prevent duplicate applications to the same vacancy unless an employer explicitly reopens the application process.
+
+## 8. SCREEN 5: MICRO-TASK AND LOCAL GIG BOARD
+
+Create a dedicated marketplace for short-term jobs.
+
+Page heading:
+"Small Tasks. Real Earnings."
+
+Examples:
+- Photography for a local event.
+- Designing a business poster.
+- Delivering documents.
+- Data entry.
+- Helping organize an event.
+- Social media content creation.
+- Video editing.
+- Tutoring.
+- Translation.
+- Computer repair.
+- Temporary shop assistance.
+- Local field surveys.
+- Short-term construction assistance.
+
+Each gig card should display:
+- Task title.
+- Poster name.
+- Verification badge.
+- Location.
+- Payment amount.
+- Estimated duration.
+- Required skills.
+- Number of workers needed.
+- Deadline.
+- Posted date.
+
+Gig categories:
+- Online Tasks.
+- Local Tasks.
+- Creative Tasks.
+- Technical Tasks.
+- Physical Tasks.
+- Educational Tasks.
+- Event-Based Tasks.
+
+Filters:
+- Nearby.
+- District.
+- Province.
+- Payment range.
+- Duration.
+- Online/Offline.
+- Skills.
+- Urgency.
+
+### Task Detail Screen
+
+Show:
+- Full task description.
+- Requirements.
+- Location or online delivery details.
+- Payment structure.
+- Completion deadline.
+- Task poster details.
+- Safety information.
+- Apply / Express Interest button.
+
+### Task Workflow
+
+1. Employer creates a task.
+2. Task becomes visible after required moderation.
+3. Job seekers express interest.
+4. Employer reviews interested candidates.
+5. Employer selects a worker.
+6. Task status changes to Assigned.
+7. Worker completes the task.
+8. Employer confirms completion.
+9. Task becomes Completed.
+10. Both parties can leave reviews.
+
+Support task statuses:
+Draft, Pending Approval, Open, Assigned, In Progress, Completed, Cancelled, Disputed.
+
+Do not falsely imply that payments are held in escrow unless a real payment and escrow integration has been implemented.
+
+## 9. SCREEN 6: EMPLOYER DASHBOARD
+
+Create a separate professional employer workspace.
+
+Sidebar:
+- Overview.
+- Post a Job.
+- Post a Micro-Task.
+- My Job Listings.
+- Applications.
+- Find Candidates.
+- Shortlisted Candidates.
+- Messages.
+- Company Profile.
+- Settings.
+
+Dashboard cards:
+- Active Jobs.
+- Total Applications.
+- New Applicants.
+- Shortlisted Candidates.
+- Completed Tasks.
+
+### Job Posting Wizard
+
+Create a multi-step form.
+
+Step 1: Basic Information
+- Job title.
+- Category.
+- Employment type.
+- Number of vacancies.
+
+Step 2: Description
+- Job description.
+- Responsibilities.
+- Required qualifications.
+- Required skills.
+- Experience requirements.
+
+Step 3: Compensation
+- Minimum salary.
+- Maximum salary.
+- Currency: NPR.
+- Payment frequency.
+
+Step 4: Location
+- Province.
+- District.
+- Municipality.
+- Specific address, if required.
+- Remote/Hybrid/On-site.
+
+Step 5: Preferences
+- Application deadline.
+- Required verification level.
+- Preferred availability.
+
+Step 6: Preview and Publish.
+
+Include draft saving and validation.
+
+### Candidate Discovery
+
+Allow employers to search candidates using:
+- Skills.
+- Academic qualifications.
+- Education level.
+- Experience.
+- Location.
+- Availability.
+- Verification status.
+
+Candidate cards should display:
+- Profile photograph.
+- Name.
+- Professional headline.
+- Skills.
+- Highest qualification.
+- Experience.
+- Location.
+- Identity verification badge.
+- Education verification badge.
+- Relevant portfolio.
+- Match score.
+
+Buttons:
+- View Profile.
+- Shortlist.
+- Contact.
+
+Employers must not receive unrestricted access to citizenship documents.
+
+Only authorized and consented verification information should be available.
+
+### Application Management
+
+Create a Kanban-style application management interface.
+
+Columns:
+- New.
+- Under Review.
+- Shortlisted.
+- Interview.
+- Selected.
+- Rejected.
+
+Allow employers to move candidates between stages.
+
+Maintain application status history and notify candidates when important statuses change.
+
+## 10. SCREEN 7: MESSAGING AND NOTIFICATIONS
+
+Create an integrated communication system.
+
+Messaging:
+- One-to-one conversations.
+- Employer-to-candidate communication.
+- Task-related conversations.
+- Job-related conversations.
+- Message timestamps.
+- Read indicators.
+- Basic attachment support.
+- Conversation search.
+
+Notifications:
+- New job matches.
+- New task matches.
+- Application received.
+- Application status changed.
+- Employer message.
+- Verification completed.
+- Verification rejected.
+- New relevant opportunities.
+- Task assigned.
+- Task deadline approaching.
+
+Create an in-app notification center with unread indicators.
+
+Prepare the architecture for push notifications and SMS notifications.
+
+## 11. ADMINISTRATION DASHBOARD
+
+Build a separate admin-only area.
+
+Sections:
+
+1. Platform Overview.
+2. User Management.
+3. Identity Verification.
+4. Academic Verification.
+5. Employer Verification.
+6. Job Moderation.
+7. Gig Moderation.
+8. Reports and Complaints.
+9. Reviews and Ratings.
+10. Category Management.
+11. Analytics.
+12. Audit Logs.
+
+Verification interface:
+
+Show submitted documents in a secure review interface.
+
+Admin actions:
+- Approve.
+- Reject.
+- Request Resubmission.
+
+Require a reason when rejecting a document.
+
+Record:
+- Reviewer ID.
+- Decision.
+- Decision timestamp.
+- Reason.
+- Verification type.
+
+Implement administrative audit logs.
+
+## 12. DATABASE ARCHITECTURE
+
+Use a relational database with proper foreign keys, indexes, validation, and access-control policies.
+
+Recommended entities:
+
+### users
+- id (UUID, primary key)
+- full_name
+- email
+- phone_number
+- password_hash / authentication_provider
+- role
+- profile_photo_url
+- date_of_birth
+- account_status
+- email_verified
+- phone_verified
+- created_at
+- updated_at
+
+### job_seeker_profiles
+- id
+- user_id (foreign key)
+- professional_headline
+- about
+- province
+- district
+- municipality
+- preferred_location
+- education_level
+- years_of_experience
+- employment_preference
+- availability
+- expected_min_salary
+- expected_max_salary
+- profile_completion_percentage
+
+### employer_profiles
+- id
+- user_id
+- employer_type
+- organization_name
+- business_category
+- description
+- website
+- province
+- district
+- municipality
+- verification_status
+- created_at
+
+### identity_verifications
+- id
+- user_id
+- document_type
+- encrypted_document_reference
+- verification_status
+- submitted_at
+- reviewed_at
+- reviewer_id
+- rejection_reason
+- consent_timestamp
+
+### education_records
+- id
+- user_id
+- qualification_level
+- institution_name
+- board_or_university
+- completion_year
+- GPA_or_percentage
+- verification_status
+- created_at
+
+### academic_documents
+- id
+- education_record_id
+- user_id
+- private_storage_path
+- document_type
+- verification_status
+- submitted_at
+- reviewed_at
+- reviewer_id
+- rejection_reason
+
+### skills
+- id
+- skill_name
+- category_id
+
+### user_skills
+- id
+- user_id
+- skill_id
+- proficiency_level
+- years_experience
+
+### portfolios
+- id
+- user_id
+- title
+- description
+- project_url
+- image_url
+- created_at
+
+### work_experiences
+- id
+- user_id
+- company_name
+- job_title
+- description
+- start_date
+- end_date
+- currently_working
+
+### jobs
+- id
+- employer_id
+- title
+- category_id
+- description
+- responsibilities
+- employment_type
+- required_education
+- minimum_experience
+- salary_min
+- salary_max
+- currency
+- province
+- district
+- municipality
+- work_mode
+- vacancies
+- application_deadline
+- status
+- created_at
+- updated_at
+
+### job_required_skills
+- id
+- job_id
+- skill_id
+- importance
+
+### job_applications
+- id
+- job_id
+- applicant_id
+- cover_message
+- resume_reference
+- status
+- applied_at
+- updated_at
+
+### saved_jobs
+- id
+- user_id
+- job_id
+- created_at
+
+### job_matches
+- id
+- user_id
+- job_id
+- match_score
+- matching_reasons (JSON)
+- calculated_at
+
+### micro_tasks
+- id
+- employer_id
+- title
+- description
+- category_id
+- payment_amount
+- currency
+- estimated_duration
+- location_type
+- province
+- district
+- municipality
+- workers_required
+- deadline
+- status
+- created_at
+
+### task_applications
+- id
+- task_id
+- applicant_id
+- message
+- status
+- applied_at
+
+### task_assignments
+- id
+- task_id
+- worker_id
+- employer_id
+- assigned_at
+- started_at
+- completed_at
+- completion_status
+
+### conversations
+- id
+- created_at
+
+### conversation_participants
+- id
+- conversation_id
+- user_id
+
+### messages
+- id
+- conversation_id
+- sender_id
+- message_text
+- attachment_reference
+- read_at
+- created_at
+
+### notifications
+- id
+- user_id
+- title
+- message
+- notification_type
+- reference_id
+- is_read
+- created_at
+
+### reviews
+- id
+- reviewer_id
+- reviewed_user_id
+- task_id
+- job_id
+- rating
+- review_text
+- created_at
+
+### reports
+- id
+- reporter_id
+- reported_user_id
+- job_id
+- task_id
+- reason
+- description
+- status
+- created_at
+
+### audit_logs
+- id
+- actor_id
+- action
+- entity_type
+- entity_id
+- metadata (JSON)
+- created_at
+
+Create appropriate indexes for:
+- User IDs.
+- Job categories.
+- Job locations.
+- Skill relationships.
+- Application status.
+- Verification status.
+- Job and task publication dates.
+
+Add database constraints and unique relationships to prevent duplicate applications and inconsistent records.
+
+Use soft deletion where appropriate, alongside a documented data-retention policy.
+
+## 13. CORE USER WORKFLOWS
+
+Implement the following complete flows.
+
+### Workflow A: Job Seeker Registration
+
+Registration → Role Selection → Personal Information → Profile Creation → Skill Selection → Academic Information → Document Upload → Verification Submission → Dashboard.
+
+Users should be able to access the platform while verification is pending, but clearly distinguish unverified from verified accounts.
+
+### Workflow B: Employer Registration
+
+Registration → Employer Role → Business Information → Employer Verification → Dashboard → Create Job → Publish → Receive Applications.
+
+### Workflow C: Direct Job Matching
+
+Job Seeker Profile → Matching Engine → Recommended Jobs → Job Details → Apply → Employer Notification → Employer Review → Shortlisting → Interview → Selection.
+
+### Workflow D: Micro-Task Hiring
+
+Employer Creates Task → Task Published → Matching Candidates → Candidates Express Interest → Employer Selects Worker → Work Begins → Completion Confirmation → Review.
+
+### Workflow E: Document Verification
+
+Document Upload → Secure Storage → Pending Verification → Admin Review → Approve / Reject / Request Resubmission → User Notification → Updated Profile Status.
+
+Every workflow must have appropriate loading, success, failure, and empty states.
+
+## 14. LOCALIZATION FOR NEPAL
+
+The application must be designed specifically for Nepal.
+
+Localization requirements:
+
+- Default country: Nepal.
+- Default currency: NPR (रु).
+- Phone number format: +977.
+- Nepal's seven provinces.
+- District and municipality selection.
+- Nepali and English language support.
+- English as the initial default language.
+- Nepali language switcher.
+- Support for Nepali names and Unicode.
+- Nepal-friendly date formatting.
+- Support for BS and AD date display where appropriate.
+- Mobile-first layout.
+- Location-based job discovery.
+
+Use structured location data rather than manually hardcoding a limited list of districts.
+
+Prepare for integrations with:
+- eSewa.
+- Khalti.
+- Fonepay.
+- SMS OTP providers.
+- Email services.
+- Map services.
+
+These integrations should remain modular and should not be falsely presented as functional until configured with real credentials and tested.
+
+## 15. UI DESIGN SYSTEM
+
+Use a consistent design system.
+
+### Colors
+
+Primary background: #0B1220
+
+Secondary background: #111B2E
+
+Card background: #172338
+
+Primary accent: #16C784
+
+Secondary accent: #3B82F6
+
+Main text: #F8FAFC
+
+Secondary text: #94A3B8
+
+Borders: #263449
+
+Success: #22C55E
+
+Warning: #F59E0B
+
+Error: #EF4444
+
+### Typography
+
+Use a modern font such as Inter for English and a suitable Devanagari font such as Noto Sans Devanagari for Nepali.
+
+### Components
+
+Create reusable components:
+- Navbar.
+- Sidebar.
+- Mobile bottom navigation.
+- JobCard.
+- GigCard.
+- CandidateCard.
+- VerificationBadge.
+- ProfileCompletionCard.
+- ApplicationStatusBadge.
+- SearchBar.
+- FilterDrawer.
+- UploadDropzone.
+- DashboardStatCard.
+- NotificationItem.
+- EmptyState.
+- LoadingSkeleton.
+- ConfirmationModal.
+- FormInput.
+- SelectDropdown.
+- ToastNotification.
+
+### Interaction Design
+
+Include:
+- Smooth hover effects.
+- Subtle transitions.
+- Interactive cards.
+- Responsive drawers.
+- Animated progress bars.
+- Skeleton loading.
+- Toast feedback.
+- Accessible forms.
+- Keyboard navigation.
+- Clear focus indicators.
+
+Avoid excessive animations and unnecessary visual clutter.
+
+## 16. TECHNICAL ARCHITECTURE
+
+Preferred implementation stack:
+
+Frontend:
+- Next.js or React.
+- TypeScript.
+- Tailwind CSS.
+- Modern component architecture.
+- Lucide icons.
+- Framer Motion for appropriate animations.
+
+Backend:
+- Supabase.
+- PostgreSQL.
+- Supabase Authentication.
+- Supabase Storage.
+- Row Level Security.
+
+Use reusable services and hooks.
+
+Keep database queries, business logic, and UI components separated.
+
+If the AI development environment has a different preferred stack, adapt the architecture without removing any core functionality.
+
+### Security Requirements
+
+Implement:
+- Secure authentication.
+- Role-based authorization.
+- Row Level Security policies.
+- Private document storage.
+- Input validation.
+- Server-side authorization checks.
+- Rate limiting for sensitive operations.
+- Secure upload validation.
+- File size and file-type restrictions.
+- Audit logging.
+- Protection against unauthorized document access.
+- Secure environment variable management.
+
+Never expose API keys, service-role keys, or sensitive credentials in frontend code.
+
+Do not use publicly accessible buckets for citizenship or academic documents.
+
+Do not trust client-side role checks as a security boundary.
+
+## 17. AI-READY FEATURES
+
+Design the architecture to support future AI features.
+
+Potential upgrades:
+
+1. AI Resume Builder.
+2. AI Job Description Generator.
+3. Semantic Skill Matching.
+4. Nepali and English Job Search Assistant.
+5. AI Career Recommendations.
+6. Certificate Information Extraction.
+7. Personalized Skill Gap Analysis.
+
+For the first version, implement deterministic, explainable matching using database records.
+
+Do not pretend that AI verification or document authenticity checks are operational without a real verification service.
+
+Do not make automated hiring decisions based on sensitive personal characteristics.
+
+## 18. RESPONSIVENESS
+
+The application must work properly on:
+
+- Desktop computers.
+- Laptops.
+- Tablets.
+- Android smartphones.
+- iPhones.
+
+Use responsive layouts.
+
+Desktop:
+- Sidebar navigation.
+- Multi-column dashboards.
+- Wide content sections.
+
+Mobile:
+- Collapsible navigation.
+- Bottom navigation.
+- Stacked cards.
+- Full-width action buttons.
+- Touch-friendly forms.
+- Mobile-friendly upload controls.
+
+Ensure the interface is comfortable to use on low-to-mid-range smartphones and slower internet connections.
+
+## 19. DEMO DATA AND TESTING
+
+Seed the application with realistic but fictional Nepali demo data.
+
+Examples:
+- A student with a verified SEE certificate.
+- A Bachelor's graduate looking for IT work.
+- A graphic designer.
+- A local restaurant hiring part-time staff.
+- A startup hiring a frontend developer.
+- A business owner posting a photography task.
+
+Never use real citizenship numbers, real private documents, or real personal information in demo data.
+
+Create sample:
+- Job listings.
+- Micro-tasks.
+- Candidate profiles.
+- Employers.
+- Applications.
+- Notifications.
+
+Test:
+- Registration.
+- Login.
+- Role permissions.
+- Profile updates.
+- Document uploads.
+- Job creation.
+- Job applications.
+- Candidate matching.
+- Task assignment.
+- Messaging.
+- Notifications.
+- Admin verification.
+
+## 20. DEVELOPMENT EXECUTION INSTRUCTIONS
+
+Build the platform in a structured and complete manner.
+
+Follow these development priorities:
+
+PHASE 1: Foundation
+- Set up project structure.
+- Configure design system.
+- Create responsive navigation.
+- Implement authentication.
+- Implement role selection.
+- Create database schema.
+
+PHASE 2: Job Seeker Experience
+- Build onboarding.
+- Build digital profile.
+- Build certificate vault.
+- Build job discovery.
+- Build applications.
+- Build personalized matching.
+
+PHASE 3: Employer Experience
+- Build employer dashboard.
+- Build job posting.
+- Build candidate discovery.
+- Build application management.
+
+PHASE 4: Micro-Task Marketplace
+- Build gig discovery.
+- Build task posting.
+- Build task applications.
+- Build assignments and completion workflows.
+
+PHASE 5: Platform Management
+- Build admin dashboard.
+- Build verification workflows.
+- Build moderation.
+- Build notifications.
+- Build messaging.
+
+PHASE 6: Quality Assurance
+- Test all major user flows.
+- Test access control.
+- Test mobile responsiveness.
+- Fix broken routes.
+- Fix console errors.
+- Validate database relationships.
+- Validate empty and error states.
+
+## 21. STRICT GUARDRAILS
+
+These instructions are mandatory.
+
+1. Do not build only a landing page.
+2. Do not skip any screen listed in this specification.
+3. Do not create decorative buttons that have no functionality.
+4. Every navigation link must lead to a real page or implemented action.
+5. Every major form must have validation.
+6. Every dashboard must display relevant data.
+7. Do not hardcode fake authentication.
+8. Do not claim that an external integration works unless it has actually been configured.
+9. Do not use mock data as a replacement for real database operations once the backend is connected.
+10. Use realistic demo data only when backend configuration is unavailable.
+11. Implement clear loading, error, success, and empty states.
+12. Keep code modular, maintainable, and reusable.
+13. Avoid unnecessary dependencies.
+14. Maintain consistent spacing, typography, colors, and components.
+15. Ensure accessibility and mobile responsiveness.
+16. Secure all sensitive personal documents.
+17. Implement role-based access control on the backend.
+18. Ensure users can only access data they are authorized to see.
+19. Make all important workflows interconnected.
+20. Never silently omit a requested feature.
+
+If a feature requires an external service, build the interface and integration abstraction, clearly document the missing configuration, and provide a working alternative where appropriate.
+
+## 22. FINAL ACCEPTANCE CRITERIA
+
+The application is considered successfully implemented only when:
+
+- A job seeker can register and create a professional profile.
+- A job seeker can upload academic documents securely.
+- Identity verification has a functional review workflow.
+- A job seeker can browse personalized job recommendations.
+- Matching scores have understandable explanations.
+- A job seeker can apply for jobs.
+- A job seeker can discover and apply for micro-tasks.
+- An employer can create and manage vacancies.
+- An employer can post micro-tasks.
+- An employer can discover and shortlist candidates.
+- Employers can manage application stages.
+- Users can communicate through the messaging interface.
+- Users receive relevant notifications.
+- Administrators can manage verification and moderation.
+- Role-based permissions are enforced.
+- The database supports all major workflows.
+- The application is responsive across mobile and desktop.
+
+### FINAL PRODUCT DIRECTION
+
+The final product should feel like a serious, scalable Nepali technology startup rather than a generic template website.
+
+Prioritize trust, simplicity, speed, accessibility, and direct connections.
+
+Make the user experience intuitive enough that a student in a small town in Nepal can easily discover a job, while a business owner in Kathmandu can quickly find a qualified and verified candidate.
+
+Build a complete foundation that can grow into Nepal's trusted digital employment ecosystem.
+
+Start by establishing the application architecture and design system, then implement the complete product in the development phases above. Do not stop after generating the initial dashboard or landing page.

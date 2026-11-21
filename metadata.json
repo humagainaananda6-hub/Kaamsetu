@@ -1,0 +1,6 @@
+{
+  "name": "KaamSetu",
+  "description": "Nepal's Verified Job & Freelancing Ecosystem — Connecting Skills to Opportunities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
