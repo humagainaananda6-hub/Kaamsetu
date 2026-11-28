@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { apiFetch } from '../lib/api';
+import { apiFetch, setAuthToken } from '../lib/api';
 import type { Language } from '../lib/i18n';
 import type { CategoryItem, SkillItem, User } from '../types';
 
@@ -20,12 +20,14 @@ interface AppContextValue {
   user: User | null;
   authLoading: boolean;
   refreshUser: () => Promise<User | null>;
+  establishSession: (nextUser: User, token?: string | null) => Promise<User>;
   logout: () => Promise<void>;
   theme: 'dark' | 'light';
   toggleTheme: () => void;
   lang: Language;
   setLang: (lang: Language) => void;
   currentPath: string;
+  navDirection: 1 | -1;
   navigate: (to: string) => void;
   categories: CategoryItem[];
   skills: SkillItem[];
@@ -58,6 +60,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentPath, setCurrentPath] = useState<string>(() =>
     typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/',
   );
+  const [navDirection, setNavDirection] = useState<1 | -1>(1);
 
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [skills, setSkills] = useState<SkillItem[]>([]);
@@ -103,10 +106,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     window.localStorage.setItem('kaamsetu_lang', next);
   }, []);
 
+  const getRouteRank = (path: string) => {
+    const clean = path.split('?')[0] || '/';
+    if (clean === '/') return 0;
+    if (clean.startsWith('/jobs')) return 1;
+    if (clean.startsWith('/gigs')) return 2;
+    if (clean.startsWith('/showcase')) return 3;
+    if (clean.startsWith('/verify')) return 4;
+    if (clean.startsWith('/messages') || clean.startsWith('/notifications')) return 5;
+    if (clean.startsWith('/seeker') || clean.startsWith('/employer') || clean.startsWith('/admin')) return 6;
+    if (clean.startsWith('/auth') || clean.startsWith('/onboarding')) return 7;
+    return 2;
+  };
+
   const navigate = useCallback((to: string) => {
     if (to.startsWith('#')) {
       const targetId = to.slice(1);
       if (window.location.pathname !== '/') {
+        setNavDirection(-1);
         window.history.pushState({}, '', '/');
         setCurrentPath('/');
         window.setTimeout(() => {
@@ -117,7 +134,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return;
     }
-    if (window.location.pathname + window.location.search !== to) {
+    const prevPath = window.location.pathname + window.location.search;
+    if (prevPath !== to) {
+      const nextRank = getRouteRank(to);
+      const prevRank = getRouteRank(prevPath);
+      setNavDirection(nextRank >= prevRank ? 1 : -1);
       window.history.pushState({}, '', to);
       setCurrentPath(to);
       window.scrollTo({ top: 0, behavior: 'auto' });
@@ -126,6 +147,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     const onPop = () => {
+      setNavDirection(-1);
       setCurrentPath(window.location.pathname + window.location.search);
     };
     window.addEventListener('popstate', onPop);
@@ -180,8 +202,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [refreshUnreadCounts]);
 
+  const establishSession = useCallback(
+    async (nextUser: User, token?: string | null) => {
+      if (token) {
+        setAuthToken(token);
+      }
+      setUser(nextUser);
+      setAuthLoading(false);
+      await refreshUnreadCounts();
+      return nextUser;
+    },
+    [refreshUnreadCounts],
+  );
+
   const logout = useCallback(async () => {
-    await apiFetch('/api/auth/logout', { method: 'POST' });
+    try {
+      await apiFetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Clear local session state even if network call fails
+    }
+    setAuthToken(null);
     setUser(null);
     setUnreadNotifications(0);
     setUnreadMessages(0);
@@ -200,12 +240,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         user,
         authLoading,
         refreshUser,
+        establishSession,
         logout,
         theme,
         toggleTheme,
         lang,
         setLang,
         currentPath,
+        navDirection,
         navigate,
         categories,
         skills,

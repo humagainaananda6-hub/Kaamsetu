@@ -83,7 +83,7 @@ export const JobPostingWizard: React.FC<{
           status: asDraft ? 'Draft' : 'Active',
         }),
       });
-      showToast(asDraft ? 'Job saved as draft.' : 'Job published to KaamSetu!', 'success');
+      showToast(asDraft ? 'Job saved as draft.' : 'Job published to KaamBridgeNepal (KBN)!', 'success');
       onCreated();
     } catch (err: any) {
       showToast(err.message || 'Could not save job.', 'error');

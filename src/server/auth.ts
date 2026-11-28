@@ -1,13 +1,18 @@
 import crypto from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 import { getDb } from './db.ts';
+import {
+  buildSessionCookieHeader,
+  isHttpsRequest,
+  isSafeCookieMutationRequest,
+} from '../lib/session-security.ts';
 import type { UserRole } from '../types.ts';
 
 const SECRET =
-  process.env.KAAMSETU_SESSION_SECRET ||
-  crypto.createHash('sha256').update('kaamsetu-local-dev-secret-2026').digest('hex');
+  process.env.KAAMSETU_SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 
 export const SESSION_COOKIE_NAME = 'kaamsetu_session';
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
 export function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString('hex');
@@ -60,7 +65,7 @@ export function verifySessionToken(token: string): SessionPayload | null {
 }
 
 interface DocTokenPayload {
-  docKind: 'identity' | 'academic' | 'employer';
+  docKind: 'identity' | 'academic' | 'employer' | 'certificate';
   docId: string;
   viewerId: string;
   exp: number;
@@ -120,10 +125,10 @@ export interface AuthedRequest extends Request {
 
 function resolveUserFromRequest(req: Request) {
   const cookies = parseCookies(req.headers.cookie);
-  let token = cookies[SESSION_COOKIE_NAME];
   const authHeader = req.headers.authorization;
-  if (!token && authHeader?.startsWith('Bearer ')) {
-    token = authHeader.slice(7);
+  let token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  if (!token) {
+    token = cookies[SESSION_COOKIE_NAME] || '';
   }
   if (!token) return null;
   const payload = verifySessionToken(token);
@@ -146,6 +151,55 @@ function resolveUserFromRequest(req: Request) {
     fullName: row.full_name,
     accountStatus: row.account_status,
   };
+}
+
+export function writeSessionCookie(req: Request, res: Response, userId: string, role: UserRole): string {
+  const token = signSessionToken({ userId, role });
+  const isHttps = isHttpsRequest({
+    secure: req.secure,
+    forwardedProto: req.headers['x-forwarded-proto'],
+  });
+  res.append(
+    'Set-Cookie',
+    buildSessionCookieHeader(SESSION_COOKIE_NAME, token, {
+      isHttps,
+      maxAgeSeconds: SESSION_MAX_AGE_SECONDS,
+    }),
+  );
+  return token;
+}
+
+export function eraseSessionCookie(req: Request, res: Response) {
+  const isHttps = isHttpsRequest({
+    secure: req.secure,
+    forwardedProto: req.headers['x-forwarded-proto'],
+  });
+  res.append(
+    'Set-Cookie',
+    buildSessionCookieHeader(SESSION_COOKIE_NAME, '', {
+      isHttps,
+      maxAgeSeconds: 0,
+    }),
+  );
+}
+
+export function verifyCookieMutationOrigin(req: Request, res: Response, next: NextFunction) {
+  const cookies = parseCookies(req.headers.cookie);
+  const authHeader = req.headers.authorization;
+  const safe = isSafeCookieMutationRequest({
+    method: req.method,
+    hasBearerAuth: Boolean(authHeader?.startsWith('Bearer ') && authHeader.slice(7).trim()),
+    hasSessionCookie: Boolean(cookies[SESSION_COOKIE_NAME]),
+    xRequestedWith: req.headers['x-requested-with'],
+    origin: req.headers.origin,
+    host: req.headers.host,
+    forwardedHost: req.headers['x-forwarded-host'],
+  });
+  if (!safe) {
+    res.status(403).json({ error: 'Cross-site cookie mutation rejected.' });
+    return;
+  }
+  next();
 }
 
 export function optionalAuth(req: AuthedRequest, _res: Response, next: NextFunction) {

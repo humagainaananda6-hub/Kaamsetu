@@ -95,14 +95,16 @@ export const GigBoardPage: React.FC = () => {
   const districts = province !== 'all' ? getDistrictsByProvince(province) : [];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] text-slate-900 dark:text-[#F8FAFC]">
+    <div className="min-h-screen text-[#0B1220] dark:text-[#F8FAFC]">
       <PublicNavbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-24 lg:pb-10 space-y-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Small Tasks. Real Earnings.</h1>
-            <p className="text-sm text-slate-600 dark:text-[#94A3B8] mt-1">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight kbn-hero-gradient">
+              Small tasks. Real earnings.
+            </h1>
+            <p className="text-sm text-[#51617a] dark:text-[#94A3B8] mt-1.5">
               Short-term local errands, event photography, tutoring, design, and online gigs. Compensation is agreed directly between task poster and worker (no automated escrow is active).
             </p>
           </div>
@@ -117,15 +119,15 @@ export const GigBoardPage: React.FC = () => {
           )}
         </div>
 
-        {/* Category Segmented Tabs */}
-        <div className="flex flex-wrap gap-1.5">
+        {/* Category Segmented Chips */}
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => setCategory('all')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+            className={`px-3.5 py-2 text-xs font-semibold rounded-full border transition-colors ${
               category === 'all'
-                ? 'border-[#3B82F6] bg-[#3B82F6]/15 text-[#3B82F6]'
-                : 'border-slate-300 dark:border-[#263449] text-slate-600 dark:text-[#94A3B8]'
+                ? 'border-[#16C784] bg-[#16C784] text-[#03130d]'
+                : 'bg-white dark:bg-[#172338] border-[#d5deea] dark:border-[#263449] text-[#51617a] dark:text-[#94A3B8]'
             }`}
           >
             All Categories
@@ -135,10 +137,10 @@ export const GigBoardPage: React.FC = () => {
               key={cat}
               type="button"
               onClick={() => setCategory(cat)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              className={`px-3.5 py-2 text-xs font-semibold rounded-full border transition-colors ${
                 category === cat
-                  ? 'border-[#3B82F6] bg-[#3B82F6]/15 text-[#3B82F6]'
-                  : 'border-slate-300 dark:border-[#263449] text-slate-600 dark:text-[#94A3B8]'
+                  ? 'border-[#16C784] bg-[#16C784] text-[#03130d]'
+                  : 'bg-white dark:bg-[#172338] border-[#d5deea] dark:border-[#263449] text-[#51617a] dark:text-[#94A3B8]'
               }`}
             >
               {cat}
@@ -225,7 +227,7 @@ export const GigBoardPage: React.FC = () => {
             }}
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="kbn-card-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {gigs.map((gig) => (
               <GigCard
                 key={gig.id}

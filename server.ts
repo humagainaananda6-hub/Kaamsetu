@@ -10,6 +10,7 @@ async function startServer() {
   seedDatabaseIfEmpty();
 
   const app = express();
+  app.set('trust proxy', 1);
   const PORT = 3000;
 
   app.use(express.json({ limit: '8mb' }));
@@ -35,11 +36,11 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`KaamSetu server running at http://localhost:${PORT}`);
+    console.log(`KaamBridgeNepal (KBN) server running at http://localhost:${PORT}`);
   });
 }
 
 startServer().catch((err) => {
-  console.error('Failed to start KaamSetu server:', err);
+  console.error('Failed to start KaamBridgeNepal (KBN) server:', err);
   process.exit(1);
 });

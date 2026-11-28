@@ -34,7 +34,7 @@ export const AdminDashboard: React.FC = () => {
 
   // Rejection / Resubmission modal
   const [reviewModal, setReviewModal] = useState<{
-    type: 'identity' | 'academic' | 'employer';
+    type: 'identity' | 'academic' | 'employer' | 'certificate';
     id: string;
     decision: 'rejected' | 'requires_resubmission';
     label: string;
@@ -62,7 +62,11 @@ export const AdminDashboard: React.FC = () => {
     loadAdmin();
   }, [loadAdmin]);
 
-  const handleOpenSignedDoc = async (kind: 'identity' | 'academic' | 'employer', id: string, label: string) => {
+  const handleOpenSignedDoc = async (
+    kind: 'identity' | 'academic' | 'employer' | 'certificate',
+    id: string,
+    label: string,
+  ) => {
     try {
       const res = await apiFetch<{ url: string }>(`/api/documents/signed-url/${kind}/${id}`);
       setPreviewLabel(label);
@@ -73,7 +77,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleDecision = async (
-    type: 'identity' | 'academic' | 'employer',
+    type: 'identity' | 'academic' | 'employer' | 'certificate',
     id: string,
     decision: 'verified' | 'rejected' | 'requires_resubmission',
     reason?: string,
@@ -138,6 +142,7 @@ export const AdminDashboard: React.FC = () => {
     { id: 'users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'identity', label: 'Identity Verification', icon: <ShieldCheck className="w-4 h-4" />, badge: data?.metrics?.pendingIdentity },
     { id: 'academic', label: 'Academic Verification', icon: <GraduationCap className="w-4 h-4" />, badge: data?.metrics?.pendingAcademic },
+    { id: 'certificates', label: 'Certificate Registry', icon: <FileCheck className="w-4 h-4" />, badge: data?.metrics?.pendingCertificates },
     { id: 'employers', label: 'Employer Verification', icon: <Building2 className="w-4 h-4" />, badge: data?.metrics?.pendingEmployers },
     { id: 'jobs', label: 'Job Moderation', icon: <Briefcase className="w-4 h-4" />, badge: data?.metrics?.pendingJobs },
     { id: 'gigs', label: 'Gig Moderation', icon: <Wrench className="w-4 h-4" /> },
@@ -149,7 +154,7 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <DashboardLayout
-      title="KaamSetu Administration"
+      title="KaamBridgeNepal (KBN) Administration"
       navItems={navItems}
       activeTab={activeTab}
       onSelectTab={setActiveTab}
@@ -169,7 +174,7 @@ export const AdminDashboard: React.FC = () => {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <DashboardStatCard label="Total Users" value={data.metrics.totalUsers} />
                 <DashboardStatCard label="Pending Identity Checks" value={data.metrics.pendingIdentity} accent="amber" />
-                <DashboardStatCard label="Pending Academic Docs" value={data.metrics.pendingAcademic} accent="amber" />
+                <DashboardStatCard label="Pending Certificate Photos" value={data.metrics.pendingCertificates || 0} accent="amber" />
                 <DashboardStatCard label="Pending Employers" value={data.metrics.pendingEmployers} accent="blue" />
                 <DashboardStatCard label="Active Jobs" value={data.metrics.activeJobs} accent="emerald" />
                 <DashboardStatCard label="Jobs Pending Approval" value={data.metrics.pendingJobs} accent="amber" />
@@ -342,6 +347,63 @@ export const AdminDashboard: React.FC = () => {
                           id: item.id,
                           decision: 'rejected',
                           label: item.title,
+                        })
+                      }
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#EF4444]/50 text-[#EF4444]"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'certificates' && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold">Certificate Photo Registry Queue</h2>
+              {(data.certificateQueue || []).map((cert: any) => (
+                <div
+                  key={cert.id}
+                  className="bg-white dark:bg-[#172338] border border-slate-200 dark:border-[#263449] rounded-xl p-5 flex flex-wrap items-center justify-between gap-4"
+                >
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <span className="text-base font-semibold">
+                        {cert.holderName} — {cert.certificateTitle}
+                      </span>
+                      <VerificationBadge status={cert.verificationStatus} />
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-[#94A3B8]">
+                      {cert.certificateType} · {cert.issuingAuthority} · Code:{' '}
+                      <span className="font-mono-num">{cert.verificationCode}</span> · Integrity:{' '}
+                      <span className="font-mono-num">{cert.integrityScore}/100</span>
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSignedDoc('certificate', cert.id, `${cert.holderName} — ${cert.certificateTitle}`)}
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-[#263449] inline-flex items-center gap-1"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Inspect Photo</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDecision('certificate', cert.id, 'verified')}
+                      className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#16C784] text-[#0B1220]"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setReviewModal({
+                          type: 'certificate',
+                          id: cert.id,
+                          decision: 'rejected',
+                          label: cert.certificateTitle,
                         })
                       }
                       className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#EF4444]/50 text-[#EF4444]"

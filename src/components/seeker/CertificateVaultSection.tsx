@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Lock, ShieldCheck, Trash2 } from 'lucide-react';
+import { Eye, ImagePlus, Lock, ShieldCheck, Trash2 } from 'lucide-react';
 import { apiFetch, fileToBase64 } from '../../lib/api';
 import { formatNepalDate } from '../../lib/nepal-locations';
 import { useApp } from '../../context/AppContext';
@@ -12,7 +12,7 @@ export const CertificateVaultSection: React.FC<{
   identity: IdentityVerification | null;
   onRefresh: () => Promise<void>;
 }> = ({ educations, identity, onRefresh }) => {
-  const { lang, showToast } = useApp();
+  const { lang, navigate, showToast } = useApp();
 
   // Academic upload state
   const [selectedEduId, setSelectedEduId] = useState(educations[0]?.id || '');
@@ -116,11 +116,21 @@ export const CertificateVaultSection: React.FC<{
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-xl font-bold">Certificate Vault &amp; Identity Verification</h2>
-        <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">
-          Documents are stored in private, access-controlled storage. Uploading a file sets status to Pending Review—badges appear only after authorized human approval.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold">Certificate Vault &amp; Identity Verification</h2>
+          <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">
+            Documents are stored in private, access-controlled storage. Uploading a file sets status to Pending Review—badges appear only after authorized human approval.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/verify')}
+          className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-[#16C784] text-[#0B1220] hover:bg-[#13b074] inline-flex items-center gap-1.5"
+        >
+          <ImagePlus className="w-3.5 h-3.5" />
+          <span>Open Certificate Photo Verifier</span>
+        </button>
       </div>
 
       {/* Academic Certificate Vault */}
@@ -175,7 +185,20 @@ export const CertificateVaultSection: React.FC<{
           ))}
         </div>
 
-        {educations.length > 0 && (
+        {educations.length === 0 ? (
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#111B2E] border border-slate-200 dark:border-[#263449] flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-slate-600 dark:text-[#94A3B8]">
+              No formal degree records added yet. You can still upload and verify any skill or academic certificate photo directly in the KBN Certificate Hub.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/verify')}
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#16C784] text-[#0B1220]"
+            >
+              Upload Certificate Photo
+            </button>
+          </div>
+        ) : (
           <form onSubmit={handleUploadAcademic} className="pt-4 border-t border-slate-200 dark:border-[#263449] space-y-4">
             <h4 className="text-sm font-semibold">Upload or Replace Academic Certificate</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -332,7 +355,7 @@ export const CertificateVaultSection: React.FC<{
               className="mt-0.5 rounded"
             />
             <span>
-              I explicitly consent to KaamSetu verification staff reviewing this identity document solely to verify my account authenticity. It will never be displayed publicly or used for unrelated AI training.
+              I explicitly consent to KaamBridgeNepal (KBN) verification staff reviewing this identity document solely to verify my account authenticity. It will never be displayed publicly or used for unrelated AI training.
             </span>
           </label>
 

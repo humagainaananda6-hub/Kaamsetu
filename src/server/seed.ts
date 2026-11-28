@@ -1,7 +1,9 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getDb, PRIVATE_DOCS_DIR } from './db.ts';
 import { hashPassword } from './auth.ts';
+import { evaluateCertificateIntegrity } from '../lib/certificate-verifier.ts';
 
 function writeSampleSvgDoc(filename: string, title: string, subtitle: string, lines: string[]) {
   const fullPath = path.join(PRIVATE_DOCS_DIR, filename);
@@ -9,7 +11,7 @@ function writeSampleSvgDoc(filename: string, title: string, subtitle: string, li
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="520" viewBox="0 0 800 520">
     <rect width="800" height="520" fill="#0F172A"/>
     <rect x="24" y="24" width="752" height="472" rx="12" fill="#172338" stroke="#263449" stroke-width="2"/>
-    <text x="56" y="80" fill="#16C784" font-family="sans-serif" font-size="14" font-weight="700">KAAMSETU PRIVATE VERIFICATION PREVIEW · SAMPLE DEMO RECORD</text>
+    <text x="56" y="80" fill="#16C784" font-family="sans-serif" font-size="14" font-weight="700">KAAMBRIDGENEPAL (KBN) CERTIFICATE VERIFICATION PREVIEW</text>
     <text x="56" y="128" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">${title}</text>
     <text x="56" y="162" fill="#94A3B8" font-family="sans-serif" font-size="16">${subtitle}</text>
     <line x1="56" y1="188" x2="744" y2="188" stroke="#263449" stroke-width="1"/>
@@ -19,16 +21,122 @@ function writeSampleSvgDoc(filename: string, title: string, subtitle: string, li
           `<text x="56" y="${236 + i * 38}" fill="#E2E8F0" font-family="monospace" font-size="16">${line}</text>`,
       )
       .join('')}
-    <text x="56" y="456" fill="#64748B" font-family="sans-serif" font-size="13">Fictional sample artifact for KaamSetu verification workflow testing only.</text>
+    <text x="56" y="456" fill="#64748B" font-family="sans-serif" font-size="13">Sample verification artifact for KaamBridgeNepal (KBN) registry workflow.</text>
   </svg>`;
   fs.writeFileSync(fullPath, svg, 'utf8');
   return fullPath;
 }
 
+function seedSampleCertificatesIfEmpty(db: ReturnType<typeof getDb>) {
+  const existingCerts = db.prepare('SELECT COUNT(*) as cnt FROM certificate_verifications').get() as { cnt: number };
+  if (existingCerts.cnt > 0) return;
+
+  const sampleCert1Path = writeSampleSvgDoc(
+    'sample-kbn-cert-tu01.svg',
+    'Tribhuvan University — B.Sc. CSIT Certificate',
+    'Verified Academic Credential · KaamBridgeNepal (KBN)',
+    ['Holder: Aarav Shrestha', 'Authority: Tribhuvan University (TU)', 'Serial No: TU-CSIT-2025-0412', 'Verification Code: KBN-CERT-2026-TU01'],
+  );
+  const sampleCert2Path = writeSampleSvgDoc(
+    'sample-kbn-cert-ct02.svg',
+    'CTEVT Digital Design & UI Diploma',
+    'Pending Reviewer Verification · KaamBridgeNepal (KBN)',
+    ['Holder: Sita Gurung', 'Authority: CTEVT Nepal', 'Serial No: CTEVT-2025-8831', 'Verification Code: KBN-CERT-2026-CT02'],
+  );
+
+  const buf1 = fs.readFileSync(sampleCert1Path);
+  const buf2 = fs.readFileSync(sampleCert2Path);
+  const hash1 = crypto.createHash('sha256').update(buf1).digest('hex');
+  const hash2 = crypto.createHash('sha256').update(buf2).digest('hex');
+  const eval1 = evaluateCertificateIntegrity({
+    buffer: buf1,
+    declaredMime: 'image/svg+xml',
+    holderName: 'Aarav Shrestha',
+    certificateTitle: 'B.Sc. CSIT Degree Certificate',
+    issuingAuthority: 'Tribhuvan University',
+    serialNumber: 'TU-CSIT-2025-0412',
+    issueYear: 2025,
+  });
+  const eval2 = evaluateCertificateIntegrity({
+    buffer: buf2,
+    declaredMime: 'image/svg+xml',
+    holderName: 'Sita Gurung',
+    certificateTitle: 'CTEVT Digital Design & UI Diploma',
+    issuingAuthority: 'CTEVT Nepal',
+    serialNumber: 'CTEVT-2025-8831',
+    issueYear: 2025,
+  });
+
+  const aaravExists = db.prepare('SELECT id FROM users WHERE id = ?').get('usr_aarav') as { id: string } | undefined;
+  const sitaExists = db.prepare('SELECT id FROM users WHERE id = ?').get('usr_sita') as { id: string } | undefined;
+  const adminExists = db.prepare('SELECT id FROM users WHERE id = ?').get('usr_admin') as { id: string } | undefined;
+  const nowStr = new Date().toISOString();
+
+  const insertCert = db.prepare(`
+    INSERT INTO certificate_verifications (
+      id, verification_code, user_id, holder_name, certificate_title, certificate_type,
+      issuing_authority, issue_year, serial_number, file_name, mime_type, file_size,
+      sha256_hash, private_storage_path, verification_status, integrity_score, checks_json,
+      verified_by, verification_notes, created_at, verified_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  insertCert.run(
+    'cert_tu01',
+    'KBN-CERT-2026-TU01',
+    aaravExists ? 'usr_aarav' : null,
+    'Aarav Shrestha',
+    'B.Sc. CSIT Degree Certificate',
+    "Bachelor's Certificate",
+    'Tribhuvan University',
+    2025,
+    'TU-CSIT-2025-0412',
+    'tu_bsc_csit_certificate.svg',
+    'image/svg+xml',
+    buf1.length,
+    hash1,
+    sampleCert1Path,
+    'verified',
+    eval1.integrityScore,
+    JSON.stringify(eval1.checks),
+    adminExists ? 'usr_admin' : null,
+    'Matched against TU academic seal & photo integrity check.',
+    nowStr,
+    nowStr,
+  );
+
+  insertCert.run(
+    'cert_ct02',
+    'KBN-CERT-2026-CT02',
+    sitaExists ? 'usr_sita' : null,
+    'Sita Gurung',
+    'CTEVT Digital Design & UI Diploma',
+    'Technical / CTEVT Training',
+    'CTEVT Nepal',
+    2025,
+    'CTEVT-2025-8831',
+    'ctevt_ui_diploma.svg',
+    'image/svg+xml',
+    buf2.length,
+    hash2,
+    sampleCert2Path,
+    'pending_review',
+    eval2.integrityScore,
+    JSON.stringify(eval2.checks),
+    null,
+    null,
+    nowStr,
+    null,
+  );
+}
+
 export function seedDatabaseIfEmpty() {
   const db = getDb();
   const countRow = db.prepare('SELECT COUNT(*) as cnt FROM users').get() as { cnt: number };
-  if (countRow.cnt > 0) return;
+  if (countRow.cnt > 0) {
+    seedSampleCertificatesIfEmpty(db);
+    return;
+  }
 
   const now = new Date('2026-11-17T08:00:00Z').toISOString();
   const daysAgo = (d: number) => new Date(Date.now() - d * 86400_000).toISOString();

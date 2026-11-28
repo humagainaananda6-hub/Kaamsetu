@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="112" fill="#0B1220"/>
+  <rect x="24" y="24" width="464" height="464" rx="96" stroke="#263449" stroke-width="8"/>
+  <!-- Bridge Arch -->
+  <path d="M96 336C138 232 204 188 256 188C308 188 374 232 416 336" stroke="#16C784" stroke-width="26" stroke-linecap="round"/>
+  <path d="M112 344H400" stroke="#F8FAFC" stroke-width="20" stroke-linecap="round"/>
+  <!-- Twin Bridge Pylons + KBN Crest -->
+  <rect x="164" y="162" width="32" height="196" rx="10" fill="#F8FAFC"/>
+  <rect x="316" y="162" width="32" height="196" rx="10" fill="#F8FAFC"/>
+  <path d="M256 108L298 148L256 188L214 148L256 108Z" fill="#16C784"/>
+  <circle cx="256" cy="148" r="14" fill="#0B1220"/>
+</svg>

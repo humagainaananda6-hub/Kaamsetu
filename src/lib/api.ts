@@ -6,10 +6,25 @@ export class ApiError extends Error {
   }
 }
 
+// Held strictly in JS module memory so iframe sessions work without exposing tokens to Web Storage.
+let inMemoryAuthToken: string | null = null;
+
+export function setAuthToken(token: string | null | undefined) {
+  inMemoryAuthToken = token && token.trim() ? token.trim() : null;
+}
+
+export function getAuthToken(): string | null {
+  return inMemoryAuthToken;
+}
+
 export async function apiFetch<T = any>(url: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
+    'X-Requested-With': 'XMLHttpRequest',
     ...(options.headers as Record<string, string> | undefined),
   };
+  if (inMemoryAuthToken && !headers['Authorization']) {
+    headers['Authorization'] = `Bearer ${inMemoryAuthToken}`;
+  }
   if (options.body && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
@@ -17,7 +32,7 @@ export async function apiFetch<T = any>(url: string, options: RequestInit = {}):
   const res = await fetch(url, {
     ...options,
     headers,
-    credentials: 'same-origin',
+    credentials: 'include',
   });
 
   const text = await res.text();
@@ -28,6 +43,10 @@ export async function apiFetch<T = any>(url: string, options: RequestInit = {}):
     } catch {
       data = { error: text };
     }
+  }
+
+  if (res.status === 401 && url === '/api/auth/me') {
+    inMemoryAuthToken = null;
   }
 
   if (!res.ok) {

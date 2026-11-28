@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Check, ChevronRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { apiFetch } from '../lib/api';
+import { apiFetch, setAuthToken } from '../lib/api';
 import { NepalLocationSelector } from '../components/ui/CommonUI';
+import { KbnBrandMark } from '../components/ui/Navigation';
 import type { EducationLevel, EmploymentType } from '../types';
 
 export const OnboardingWizard: React.FC = () => {
@@ -12,6 +13,13 @@ export const OnboardingWizard: React.FC = () => {
   );
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const autostart = new URLSearchParams(window.location.search).get('autostart') === '1';
+    if (autostart && user) {
+      navigate(user.role === 'employer' ? '/employer' : '/seeker');
+    }
+  }, [user, navigate]);
 
   // Seeker fields
   const [fullName, setFullName] = useState(user?.fullName || '');
@@ -48,7 +56,7 @@ export const OnboardingWizard: React.FC = () => {
     setSaving(true);
     try {
       if (role === 'job_seeker') {
-        await apiFetch('/api/onboarding/seeker', {
+        const res = await apiFetch<{ token?: string }>('/api/onboarding/seeker', {
           method: 'POST',
           body: JSON.stringify({
             fullName,
@@ -65,14 +73,15 @@ export const OnboardingWizard: React.FC = () => {
             saveOnly,
           }),
         });
+        if (res.token) setAuthToken(res.token);
         await refreshUser();
-        showToast(saveOnly ? 'Progress saved. You can finish anytime.' : 'Profile ready! Welcome to KaamSetu.', 'success');
+        showToast(saveOnly ? 'Progress saved. You can finish anytime.' : 'Profile ready! Welcome to KaamBridgeNepal (KBN).', 'success');
         navigate('/seeker');
       } else {
-        await apiFetch('/api/onboarding/employer', {
+        const res = await apiFetch<{ token?: string }>('/api/onboarding/employer', {
           method: 'POST',
           body: JSON.stringify({
-            organizationName,
+            organizationName: organizationName || `${user?.fullName || 'New'} Enterprise`,
             employerType,
             businessCategory,
             contactPerson,
@@ -85,6 +94,7 @@ export const OnboardingWizard: React.FC = () => {
             saveOnly,
           }),
         });
+        if (res.token) setAuthToken(res.token);
         await refreshUser();
         showToast(saveOnly ? 'Draft saved.' : 'Employer profile ready!', 'success');
         navigate('/employer');
@@ -97,16 +107,28 @@ export const OnboardingWizard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] text-slate-900 dark:text-[#F8FAFC] py-10 px-4">
-      <div className="max-w-2xl mx-auto bg-white dark:bg-[#172338] border border-slate-200 dark:border-[#263449] rounded-2xl p-6 sm:p-8 space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <span className="text-xs font-semibold text-[#16C784]">KAAMSETU ONBOARDING</span>
-            <h1 className="text-2xl font-bold mt-0.5">Set Up Your Account</h1>
+    <div className="min-h-screen text-[#0B1220] dark:text-[#F8FAFC] py-10 px-4">
+      <div className="max-w-2xl mx-auto kbn-card-surface rounded-[24px] p-6 sm:p-8 space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-2">
+            <KbnBrandMark compact={false} />
+            <div>
+              <span className="text-[11px] font-bold tracking-[0.06em] uppercase text-[#16C784]">Account Setup</span>
+              <h1 className="text-2xl font-extrabold font-display tracking-tight mt-0.5">Set Up Your Profile</h1>
+            </div>
           </div>
-          <span className="text-xs font-mono-num text-slate-500 dark:text-[#94A3B8]">
-            Step {step} of {totalSteps}
-          </span>
+          <div className="flex flex-col items-end gap-2">
+            <button
+              type="button"
+              onClick={() => navigate(role === 'employer' ? '/employer' : '/seeker')}
+              className="px-3.5 py-1.5 text-xs font-semibold rounded-xl border border-[#d5deea] dark:border-[#263449] hover:border-[#16C784]"
+            >
+              Skip &amp; Open Workspace →
+            </button>
+            <span className="text-xs font-mono-num text-[#51617a] dark:text-[#94A3B8]">
+              Step {step} of {totalSteps}
+            </span>
+          </div>
         </div>
 
         {/* Progress Bar */}
@@ -119,7 +141,7 @@ export const OnboardingWizard: React.FC = () => {
 
         {step === 1 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">1. How will you use KaamSetu?</h2>
+            <h2 className="text-lg font-semibold">1. How will you use KaamBridgeNepal (KBN)?</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 type="button"

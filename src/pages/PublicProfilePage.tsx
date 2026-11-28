@@ -30,7 +30,7 @@ export const PublicProfilePage: React.FC<{ userId: string }> = ({ userId }) => {
         body: JSON.stringify({
           recipientId: userId,
           contextTitle: `Inquiry for ${profile.fullName}`,
-          initialMessage: `Namaste ${profile.fullName}! I viewed your verified KaamSetu profile and would like to connect.`,
+          initialMessage: `Namaste ${profile.fullName}! I viewed your verified KaamBridgeNepal (KBN) profile and would like to connect.`,
         }),
       });
       navigate(`/messages?conv=${res.id}`);
@@ -43,7 +43,7 @@ export const PublicProfilePage: React.FC<{ userId: string }> = ({ userId }) => {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] text-slate-900 dark:text-[#F8FAFC]">
       <PublicNavbar />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 pb-20 lg:pb-8 space-y-6">
         <button
           type="button"
           onClick={() => window.history.back()}

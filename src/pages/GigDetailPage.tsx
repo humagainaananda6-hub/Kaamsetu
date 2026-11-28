@@ -111,7 +111,7 @@ export const GigDetailPage: React.FC<{ gigId: string }> = ({ gigId }) => {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] text-slate-900 dark:text-[#F8FAFC]">
       <PublicNavbar />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-20 lg:pb-8 space-y-6">
         <button
           type="button"
           onClick={() => navigate('/gigs')}
@@ -311,7 +311,7 @@ export const GigDetailPage: React.FC<{ gigId: string }> = ({ gigId }) => {
                   <span>Safety &amp; Payment Notice</span>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-[#94A3B8] leading-relaxed">
-                  Payments are not held in escrow on KaamSetu. Agree on milestones and settlement method (e.g., cash, eSewa, Khalti, Fonepay) directly with verified task posters before starting physical or online deliverables.
+                  Payments are not held in escrow on KaamBridgeNepal (KBN). Agree on milestones and settlement method (e.g., cash, eSewa, Khalti, Fonepay) directly with verified task posters before starting physical or online deliverables.
                 </p>
                 {gig.assignedWorkerName && (
                   <p className="text-xs pt-2 border-t border-slate-100 dark:border-[#263449]">

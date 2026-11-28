@@ -82,7 +82,7 @@ export const JobDiscoveryPage: React.FC = () => {
     }
     setApplyTarget(job);
     setCoverMessage(
-      `Namaste! I am interested in the ${job.title} position and have attached my verified KaamSetu profile for your review.`,
+      `Namaste! I am interested in the ${job.title} position and have attached my verified KaamBridgeNepal (KBN) profile for your review.`,
     );
   };
 
@@ -120,16 +120,16 @@ export const JobDiscoveryPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] text-slate-900 dark:text-[#F8FAFC]">
+    <div className="min-h-screen text-[#0B1220] dark:text-[#F8FAFC]">
       <PublicNavbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-24 lg:pb-10 space-y-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Find Opportunities That Match Your Potential.
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight kbn-hero-gradient">
+              Find opportunities that match your potential.
             </h1>
-            <p className="text-sm text-slate-600 dark:text-[#94A3B8] mt-1">
+            <p className="text-sm text-[#51617a] dark:text-[#94A3B8] mt-1.5">
               {user?.role === 'job_seeker'
                 ? 'Sorted by your rule-based match score. Match scores are advisory recommendations — employers review all applicants.'
                 : 'Sign in as a Job Seeker to see personalized match percentages across all active listings.'}
@@ -166,7 +166,7 @@ export const JobDiscoveryPage: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="px-5 py-2.5 text-sm font-semibold rounded-xl bg-[#16C784] text-[#0B1220] hover:bg-[#13b074] transition-colors whitespace-nowrap"
+            className="px-5 py-2.5 text-sm font-bold rounded-[14px] kbn-btn-primary whitespace-nowrap"
           >
             Search Jobs
           </button>
@@ -175,7 +175,7 @@ export const JobDiscoveryPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Filter Panel */}
           <aside
-            className={`lg:col-span-3 bg-white dark:bg-[#172338] border border-slate-200 dark:border-[#263449] rounded-xl p-5 space-y-4 ${
+            className={`lg:col-span-3 kbn-card-surface rounded-[20px] p-5 space-y-4 ${
               filtersOpen ? 'block' : 'hidden lg:block'
             }`}
           >
@@ -361,7 +361,7 @@ export const JobDiscoveryPage: React.FC = () => {
                 onAction={clearFilters}
               />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="kbn-card-grid grid grid-cols-1 md:grid-cols-2 gap-5">
                 {jobs.map((job) => (
                   <JobCard
                     key={job.id}
@@ -382,7 +382,7 @@ export const JobDiscoveryPage: React.FC = () => {
         title={applyTarget ? `Apply to ${applyTarget.title}` : 'Confirm Application'}
         description={
           applyTarget
-            ? `Your KaamSetu profile and verified academic qualifications will be shared with ${applyTarget.organizationName}. Private citizenship images are never shared.`
+            ? `Your KaamBridgeNepal (KBN) profile and verified academic qualifications will be shared with ${applyTarget.organizationName}. Private citizenship images are never shared.`
             : ''
         }
         confirmLabel="Submit Application"

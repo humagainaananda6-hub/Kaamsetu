@@ -2,7 +2,7 @@ export type Language = 'en' | 'ne';
 
 const DICT = {
   en: {
-    brand: 'KAAMSETU',
+    brand: 'KaamBridgeNepal (KBN)',
     tagline: 'Connecting Skills to Opportunities.',
     navJobs: 'Find Jobs',
     navGigs: 'Find Gigs',
@@ -33,7 +33,7 @@ const DICT = {
     logout: 'Sign Out',
   },
   ne: {
-    brand: 'कामसेतु',
+    brand: 'KaamBridgeNepal (KBN)',
     tagline: 'सीपलाई अवसरसँग जोड्दै।',
     navJobs: 'रोजगारी खोज्नुहोस्',
     navGigs: 'साना काम (गिग)',

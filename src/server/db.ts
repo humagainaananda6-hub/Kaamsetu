@@ -378,6 +378,30 @@ function initSchema(db: DatabaseSync) {
       used INTEGER NOT NULL DEFAULT 0
     );
 
+    CREATE TABLE IF NOT EXISTS certificate_verifications (
+      id TEXT PRIMARY KEY,
+      verification_code TEXT NOT NULL UNIQUE,
+      user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      holder_name TEXT NOT NULL,
+      certificate_title TEXT NOT NULL,
+      certificate_type TEXT NOT NULL,
+      issuing_authority TEXT NOT NULL,
+      issue_year INTEGER,
+      serial_number TEXT NOT NULL,
+      file_name TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      sha256_hash TEXT NOT NULL,
+      private_storage_path TEXT NOT NULL,
+      verification_status TEXT NOT NULL DEFAULT 'pending_review' CHECK (verification_status IN ('pending_review', 'verified', 'rejected')),
+      integrity_score INTEGER NOT NULL DEFAULT 0,
+      checks_json TEXT NOT NULL DEFAULT '[]',
+      verified_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+      verification_notes TEXT,
+      created_at TEXT NOT NULL,
+      verified_at TEXT
+    );
+
     CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category_id);
     CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(province, district);
     CREATE INDEX IF NOT EXISTS idx_jobs_status_date ON jobs(status, created_at);
@@ -388,6 +412,8 @@ function initSchema(db: DatabaseSync) {
     CREATE INDEX IF NOT EXISTS idx_user_skills_user ON user_skills(user_id);
     CREATE INDEX IF NOT EXISTS idx_identity_status ON identity_verifications(verification_status);
     CREATE INDEX IF NOT EXISTS idx_academic_status ON academic_documents(verification_status);
+    CREATE INDEX IF NOT EXISTS idx_cert_verifications_code ON certificate_verifications(verification_code);
+    CREATE INDEX IF NOT EXISTS idx_cert_verifications_status ON certificate_verifications(verification_status);
     CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
     CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id, created_at);
   `);

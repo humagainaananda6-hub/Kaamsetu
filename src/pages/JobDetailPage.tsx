@@ -101,7 +101,7 @@ export const JobDetailPage: React.FC<{ jobId: string }> = ({ jobId }) => {
       });
       setReportOpen(false);
       setReportDesc('');
-      showToast('Report submitted to KaamSetu moderation team.', 'success');
+      showToast('Report submitted to KaamBridgeNepal (KBN) moderation team.', 'success');
     } catch (err: any) {
       showToast(err.message || 'Could not submit report.', 'error');
     }
@@ -111,7 +111,7 @@ export const JobDetailPage: React.FC<{ jobId: string }> = ({ jobId }) => {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] text-slate-900 dark:text-[#F8FAFC]">
       <PublicNavbar />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-20 lg:pb-8 space-y-6">
         <button
           type="button"
           onClick={() => navigate('/jobs')}

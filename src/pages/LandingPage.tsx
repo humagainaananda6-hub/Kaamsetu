@@ -19,8 +19,8 @@ import { GigCard, JobCard } from '../components/ui/Cards';
 
 const FAQS = [
   {
-    q: 'How is KaamSetu different from freelancing bidding sites?',
-    a: 'There are no reverse-auction bidding wars. Job seekers create a verified skill and education profile once, and KaamSetu computes transparent rule-based match scores directly against employer requirements.',
+    q: 'How is KaamSTG different from freelancing bidding sites?',
+    a: 'There are no reverse-auction bidding wars. Job seekers create a verified skill and education profile once, and KaamSTG computes transparent rule-based match scores directly against employer requirements.',
   },
   {
     q: 'Does uploading my Citizenship (Nagarikta) or SEE certificate make me verified immediately?',
@@ -32,7 +32,7 @@ const FAQS = [
   },
   {
     q: 'How do payments work for Micro-Tasks and local gigs?',
-    a: 'Task listings display agreed NPR compensation upfront. KaamSetu is architected for modular eSewa, Khalti, and Fonepay integrations once merchant credentials are configured; until then, workers and posters settle compensation directly.',
+    a: 'Task listings display agreed NPR compensation upfront. KaamSTG is architected for modular eSewa, Khalti, and Fonepay integrations once merchant credentials are configured; until then, workers and posters settle compensation directly.',
   },
 ];
 
@@ -354,7 +354,7 @@ export const LandingPage: React.FC = () => {
 
       {/* How It Works */}
       <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 py-12 border-t border-slate-200 dark:border-[#263449]">
-        <h2 className="text-2xl font-bold tracking-tight mb-8">How KaamSetu Works</h2>
+        <h2 className="text-2xl font-bold tracking-tight mb-8">How KaamSTG Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
@@ -367,7 +367,7 @@ export const LandingPage: React.FC = () => {
             },
             {
               step: '03. Connect & Track Directly',
-              text: 'Apply in one click, message employers inside KaamSetu, and follow every stage from New to Shortlisted, Interview, and Selected.',
+              text: 'Apply in one click, message employers inside KaamSTG, and follow every stage from New to Shortlisted, Interview, and Selected.',
             },
           ].map((item) => (
             <div
@@ -436,7 +436,7 @@ export const LandingPage: React.FC = () => {
         <div className="mb-6">
           <h2 className="text-2xl font-bold tracking-tight">Community Stories (Sample Illustrative Scenarios)</h2>
           <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">
-            Illustrative sample scenarios showing how students, freelancers, and employers use KaamSetu.
+            Illustrative sample scenarios showing how students, freelancers, and employers use KaamSTG.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -493,7 +493,7 @@ export const LandingPage: React.FC = () => {
       <footer className="border-t border-slate-200 dark:border-[#263449] bg-white dark:bg-[#111B2E]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
           <div className="space-y-2">
-            <span className="text-base font-extrabold font-display tracking-tight">KAAMSETU</span>
+            <span className="text-base font-extrabold font-display tracking-tight">KaamSTG</span>
             <p className="text-xs text-slate-500 dark:text-[#94A3B8]">
               Connecting Skills to Opportunities across Nepal&apos;s 7 provinces and 77 districts.
             </p>
@@ -527,12 +527,12 @@ export const LandingPage: React.FC = () => {
               Nepal Integrations Ready
             </p>
             <p className="text-xs text-slate-500 dark:text-[#94A3B8]">
-              Modular hooks prepared for eSewa, Khalti, Fonepay &amp; SMS OTP gateways (unconfigured in local mode; direct settlement applies). Contact: support@kaamsetu.np
+              Modular hooks prepared for eSewa, Khalti, Fonepay &amp; SMS OTP gateways (unconfigured in local mode; direct settlement applies). Contact: support@kaamstg.np
             </p>
           </div>
         </div>
         <div className="border-t border-slate-200 dark:border-[#263449] py-4 text-center text-xs text-slate-500 dark:text-[#94A3B8]">
-          © {new Date().getFullYear()} KaamSetu Nepal · Currency: NPR (रु)
+          © {new Date().getFullYear()} KaamSTG Nepal · Currency: NPR (रु)
         </div>
       </footer>
     </div>

@@ -4,16 +4,17 @@ import path from 'node:path';
 import express, { type Request, type Response } from 'express';
 import { getDb, PRIVATE_DOCS_DIR } from './db.ts';
 import {
-  SESSION_COOKIE_NAME,
+  eraseSessionCookie,
   hashPassword,
   optionalAuth,
   rateLimit,
   requireAuth,
   requireRole,
   signDocAccessToken,
-  signSessionToken,
+  verifyCookieMutationOrigin,
   verifyDocAccessToken,
   verifyPassword,
+  writeSessionCookie,
   type AuthedRequest,
 } from './auth.ts';
 import {
@@ -22,6 +23,11 @@ import {
   calculateProfileCompletion,
 } from '../lib/matching-engine.ts';
 import { normalizeNepalPhone } from '../lib/nepal-locations.ts';
+import {
+  evaluateCertificateIntegrity,
+  formatVerificationCode,
+  normalizeLookupQuery,
+} from '../lib/certificate-verifier.ts';
 import type {
   ApplicationStatus,
   EducationLevel,
@@ -78,7 +84,11 @@ function createNotification(
   ).run(uid('not'), userId, title, message, notificationType, referenceId, nowIso());
 }
 
-function saveBase64PrivateDoc(base64Data: string, mimeType: string, prefix: string): { filePath: string; fileSize: number } {
+function saveBase64PrivateDoc(
+  base64Data: string,
+  mimeType: string,
+  prefix: string,
+): { filePath: string; fileSize: number; buffer: Buffer; sha256: string } {
   if (!ALLOWED_DOC_MIME.has(mimeType)) {
     throw new Error('Unsupported file type. Allowed: PNG, JPG, WEBP, PDF.');
   }
@@ -100,7 +110,8 @@ function saveBase64PrivateDoc(base64Data: string, mimeType: string, prefix: stri
   const fileName = `${prefix}_${crypto.randomUUID()}.${ext}`;
   const filePath = path.join(PRIVATE_DOCS_DIR, fileName);
   fs.writeFileSync(filePath, buffer);
-  return { filePath, fileSize: buffer.length };
+  const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+  return { filePath, fileSize: buffer.length, buffer, sha256 };
 }
 
 function getCandidateMatchInput(userId: string) {
@@ -236,19 +247,13 @@ function hydrateJobRow(row: Record<string, any>, viewerUserId?: string): Job {
   };
 }
 
-function setSessionCookie(res: Response, userId: string, role: UserRole) {
-  const token = signSessionToken({ userId, role });
-  res.cookie(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 1000 * 60 * 60 * 24 * 7,
-  });
-  return token;
+function setSessionCookie(req: Request, res: Response, userId: string, role: UserRole) {
+  return writeSessionCookie(req, res, userId, role);
 }
 
 export function createApiRouter() {
   const router = express.Router();
+  router.use(verifyCookieMutationOrigin);
 
   router.get('/health', (_req, res) => {
     res.json({ ok: true, service: 'kaamsetu-api' });
@@ -312,22 +317,32 @@ export function createApiRouter() {
     const now = nowIso();
     db.prepare(`
       INSERT INTO users (id, full_name, email, phone_number, password_hash, role, account_status, email_verified, phone_verified, onboarding_completed, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, 'active', 1, ?, 0, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, 'active', 1, ?, 1, ?, ?)
     `).run(userId, fullName.trim(), email.trim().toLowerCase(), normalizedPhone, hashPassword(password), chosenRole, normalizedPhone ? 1 : 0, now, now);
 
     if (chosenRole === 'job_seeker') {
-      db.prepare(`INSERT INTO job_seeker_profiles (id, user_id) VALUES (?, ?)`).run(uid('jsp'), userId);
+      db.prepare(
+        `INSERT INTO job_seeker_profiles (id, user_id, education_level, profile_completion_percentage) VALUES (?, ?, ?, 25)`,
+      ).run(uid('jsp'), userId, "Bachelor's");
     } else {
       db.prepare(
         `INSERT INTO employer_profiles (id, user_id, organization_name, contact_person, created_at) VALUES (?, ?, ?, ?, ?)`,
       ).run(uid('emp'), userId, `${fullName.trim()} Enterprise`, fullName.trim(), now);
     }
 
-    setSessionCookie(res, userId, chosenRole);
+    const token = setSessionCookie(req, res, userId, chosenRole);
     const user = db
       .prepare('SELECT id, full_name as fullName, email, phone_number as phoneNumber, role, profile_photo_url as profilePhotoUrl, date_of_birth as dateOfBirth, account_status as accountStatus, email_verified as emailVerified, phone_verified as phoneVerified, onboarding_completed as onboardingCompleted, created_at as createdAt, updated_at as updatedAt FROM users WHERE id = ?')
-      .get(userId);
-    res.status(201).json({ user });
+      .get(userId) as Record<string, any>;
+    res.status(201).json({
+      user: {
+        ...user,
+        emailVerified: !!user.emailVerified,
+        phoneVerified: !!user.phoneVerified,
+        onboardingCompleted: !!user.onboardingCompleted,
+      },
+      token,
+    });
   });
 
   router.post('/auth/login', rateLimit('auth_login', 30, 60_000), (req: Request, res: Response) => {
@@ -350,8 +365,9 @@ export function createApiRouter() {
       return;
     }
 
-    setSessionCookie(res, row.id, row.role as UserRole);
+    const token = setSessionCookie(req, res, row.id, row.role as UserRole);
     res.json({
+      token,
       user: {
         id: row.id,
         fullName: row.full_name,
@@ -423,11 +439,13 @@ export function createApiRouter() {
       const now = nowIso();
       db.prepare(`
         INSERT INTO users (id, full_name, email, phone_number, password_hash, role, account_status, email_verified, phone_verified, onboarding_completed, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, 'active', 0, 1, 0, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, 'active', 0, 1, 1, ?, ?)
       `).run(userId, displayName, syntheticEmail, check.normalized, hashPassword(crypto.randomUUID()), chosenRole, now, now);
 
       if (chosenRole === 'job_seeker') {
-        db.prepare('INSERT INTO job_seeker_profiles (id, user_id) VALUES (?, ?)').run(uid('jsp'), userId);
+        db.prepare(
+          'INSERT INTO job_seeker_profiles (id, user_id, education_level, profile_completion_percentage) VALUES (?, ?, ?, 25)',
+        ).run(uid('jsp'), userId, "Bachelor's");
       } else {
         db.prepare(
           'INSERT INTO employer_profiles (id, user_id, organization_name, contact_person, created_at) VALUES (?, ?, ?, ?, ?)',
@@ -441,8 +459,9 @@ export function createApiRouter() {
       return;
     }
 
-    setSessionCookie(res, userRow.id, userRow.role as UserRole);
+    const token = setSessionCookie(req, res, userRow.id, userRow.role as UserRole);
     res.json({
+      token,
       user: {
         id: userRow.id,
         fullName: userRow.full_name,
@@ -507,8 +526,8 @@ export function createApiRouter() {
     res.json({ ok: true });
   });
 
-  router.post('/auth/logout', (_req, res) => {
-    res.clearCookie(SESSION_COOKIE_NAME, { path: '/' });
+  router.post('/auth/logout', (req: Request, res: Response) => {
+    eraseSessionCookie(req, res);
     res.json({ ok: true });
   });
 
@@ -597,8 +616,8 @@ export function createApiRouter() {
     }
 
     const completion = recomputeProfileCompletion(userId);
-    setSessionCookie(res, userId, 'job_seeker');
-    res.json({ ok: true, profileCompletionPercentage: completion });
+    const token = setSessionCookie(req, res, userId, 'job_seeker');
+    res.json({ ok: true, token, profileCompletionPercentage: completion });
   });
 
   router.post('/onboarding/employer', requireAuth, (req: AuthedRequest, res: Response) => {
@@ -676,8 +695,8 @@ export function createApiRouter() {
       );
     }
 
-    setSessionCookie(res, userId, 'employer');
-    res.json({ ok: true });
+    const token = setSessionCookie(req, res, userId, 'employer');
+    res.json({ ok: true, token });
   });
 
   // ---------------- JOB SEEKER PROFILE & VAULT ----------------
@@ -2213,6 +2232,363 @@ export function createApiRouter() {
     res.status(201).json({ ok: true });
   });
 
+  // ---------------- CERTIFICATE PHOTO & VERIFICATION HUB ----------------
+  router.get('/certificates', optionalAuth, (req: AuthedRequest, res: Response) => {
+    const db = getDb();
+    const isAdmin = req.authUser?.role === 'admin';
+    const userId = req.authUser?.id;
+
+    let rows: any[] = [];
+    if (isAdmin) {
+      rows = db
+        .prepare(
+          `SELECT id, verification_code as verificationCode, user_id as userId, holder_name as holderName,
+                  certificate_title as certificateTitle, certificate_type as certificateType,
+                  issuing_authority as issuingAuthority, issue_year as issueYear, serial_number as serialNumber,
+                  file_name as fileName, mime_type as mimeType, file_size as fileSize, sha256_hash as sha256Hash,
+                  verification_status as verificationStatus, integrity_score as integrityScore,
+                  checks_json as checksJson, verification_notes as verificationNotes,
+                  created_at as createdAt, verified_at as verifiedAt
+           FROM certificate_verifications ORDER BY created_at DESC LIMIT 40`,
+        )
+        .all();
+    } else if (userId) {
+      rows = db
+        .prepare(
+          `SELECT id, verification_code as verificationCode, user_id as userId, holder_name as holderName,
+                  certificate_title as certificateTitle, certificate_type as certificateType,
+                  issuing_authority as issuingAuthority, issue_year as issueYear, serial_number as serialNumber,
+                  file_name as fileName, mime_type as mimeType, file_size as fileSize, sha256_hash as sha256Hash,
+                  verification_status as verificationStatus, integrity_score as integrityScore,
+                  checks_json as checksJson, verification_notes as verificationNotes,
+                  created_at as createdAt, verified_at as verifiedAt
+           FROM certificate_verifications
+           WHERE user_id = ? OR id IN ('cert_tu01', 'cert_ct02')
+           ORDER BY created_at DESC LIMIT 30`,
+        )
+        .all(userId);
+    } else {
+      rows = db
+        .prepare(
+          `SELECT id, verification_code as verificationCode, user_id as userId, holder_name as holderName,
+                  certificate_title as certificateTitle, certificate_type as certificateType,
+                  issuing_authority as issuingAuthority, issue_year as issueYear, serial_number as serialNumber,
+                  file_name as fileName, mime_type as mimeType, file_size as fileSize, sha256_hash as sha256Hash,
+                  verification_status as verificationStatus, integrity_score as integrityScore,
+                  checks_json as checksJson, verification_notes as verificationNotes,
+                  created_at as createdAt, verified_at as verifiedAt
+           FROM certificate_verifications
+           WHERE user_id IS NULL OR id IN ('cert_tu01', 'cert_ct02')
+           ORDER BY created_at DESC LIMIT 20`,
+        )
+        .all();
+    }
+
+    const certificates = rows.map((r) => ({
+      ...r,
+      checks: JSON.parse(r.checksJson || '[]'),
+      previewUrl:
+        isAdmin || (userId && r.userId === userId) || !r.userId || r.id === 'cert_tu01' || r.id === 'cert_ct02'
+          ? `/api/documents/file/${signDocAccessToken({ docKind: 'certificate', docId: r.id, viewerId: userId || 'guest' })}`
+          : null,
+    }));
+
+    res.json({ certificates });
+  });
+
+  router.get('/certificates/lookup', optionalAuth, (req: AuthedRequest, res: Response) => {
+    const rawQ = String(req.query.q || '');
+    const q = normalizeLookupQuery(rawQ);
+    if (!q) {
+      res.status(400).json({ error: 'Enter a verification code or certificate serial number.' });
+      return;
+    }
+
+    const db = getDb();
+    const row = db
+      .prepare(
+        `SELECT id, verification_code as verificationCode, user_id as userId, holder_name as holderName,
+                certificate_title as certificateTitle, certificate_type as certificateType,
+                issuing_authority as issuingAuthority, issue_year as issueYear, serial_number as serialNumber,
+                file_name as fileName, mime_type as mimeType, file_size as fileSize, sha256_hash as sha256Hash,
+                verification_status as verificationStatus, integrity_score as integrityScore,
+                checks_json as checksJson, verification_notes as verificationNotes,
+                created_at as createdAt, verified_at as verifiedAt
+         FROM certificate_verifications
+         WHERE UPPER(verification_code) = ? OR UPPER(REPLACE(serial_number, ' ', '')) = ?
+         LIMIT 1`,
+      )
+      .get(q, q) as Record<string, any> | undefined;
+
+    if (!row) {
+      res.status(404).json({ error: `No certificate found matching "${rawQ.trim()}".` });
+      return;
+    }
+
+    const viewerId = req.authUser?.id || 'guest';
+    const canPreview =
+      req.authUser?.role === 'admin' ||
+      (req.authUser?.id && row.userId === req.authUser.id) ||
+      !row.userId ||
+      row.id === 'cert_tu01' ||
+      row.id === 'cert_ct02';
+
+    res.json({
+      certificate: {
+        ...row,
+        checks: JSON.parse(row.checksJson || '[]'),
+        previewUrl: canPreview
+          ? `/api/documents/file/${signDocAccessToken({ docKind: 'certificate', docId: row.id, viewerId })}`
+          : null,
+      },
+    });
+  });
+
+  router.post('/certificates/upload', optionalAuth, rateLimit('cert_upload', 20, 60_000), (req: AuthedRequest, res: Response) => {
+    const {
+      holderName,
+      certificateTitle,
+      certificateType,
+      issuingAuthority,
+      issueYear,
+      serialNumber,
+      fileName,
+      mimeType,
+      fileBase64,
+    } = req.body || {};
+
+    if (!holderName || !certificateTitle || !issuingAuthority || !serialNumber || !fileName || !mimeType || !fileBase64) {
+      res.status(400).json({ error: 'Holder name, certificate title, issuing authority, serial number, and photo file are required.' });
+      return;
+    }
+
+    try {
+      const { filePath, fileSize, buffer, sha256 } = saveBase64PrivateDoc(String(fileBase64), String(mimeType), 'cert');
+      const parsedYear = issueYear ? Number(issueYear) : null;
+      const integrity = evaluateCertificateIntegrity({
+        buffer,
+        declaredMime: String(mimeType),
+        holderName: String(holderName),
+        certificateTitle: String(certificateTitle),
+        issuingAuthority: String(issuingAuthority),
+        serialNumber: String(serialNumber),
+        issueYear: parsedYear,
+      });
+
+      const id = uid('cert');
+      const code = formatVerificationCode(id);
+      const now = nowIso();
+      const db = getDb();
+
+      db.prepare(`
+        INSERT INTO certificate_verifications (
+          id, verification_code, user_id, holder_name, certificate_title, certificate_type,
+          issuing_authority, issue_year, serial_number, file_name, mime_type, file_size,
+          sha256_hash, private_storage_path, verification_status, integrity_score, checks_json,
+          created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_review', ?, ?, ?)
+      `).run(
+        id,
+        code,
+        req.authUser?.id || null,
+        String(holderName).trim(),
+        String(certificateTitle).trim(),
+        String(certificateType || 'Academic / Skill Certificate').trim(),
+        String(issuingAuthority).trim(),
+        parsedYear,
+        String(serialNumber).trim(),
+        String(fileName),
+        String(mimeType),
+        fileSize,
+        sha256,
+        filePath,
+        integrity.integrityScore,
+        JSON.stringify(integrity.checks),
+        now,
+      );
+
+      if (req.authUser) {
+        writeAudit(req.authUser.id, 'UPLOAD_CERTIFICATE_PHOTO', 'certificate_verification', id, { code, sha256 });
+      }
+
+      const previewUrl = `/api/documents/file/${signDocAccessToken({
+        docKind: 'certificate',
+        docId: id,
+        viewerId: req.authUser?.id || 'guest',
+      })}`;
+
+      res.status(201).json({
+        certificate: {
+          id,
+          verificationCode: code,
+          userId: req.authUser?.id || null,
+          holderName: String(holderName).trim(),
+          certificateTitle: String(certificateTitle).trim(),
+          certificateType: String(certificateType || 'Academic / Skill Certificate').trim(),
+          issuingAuthority: String(issuingAuthority).trim(),
+          issueYear: parsedYear,
+          serialNumber: String(serialNumber).trim(),
+          fileName: String(fileName),
+          mimeType: String(mimeType),
+          fileSize,
+          sha256Hash: sha256,
+          verificationStatus: 'pending_review',
+          integrityScore: integrity.integrityScore,
+          checks: integrity.checks,
+          createdAt: now,
+          verifiedAt: null,
+          previewUrl,
+        },
+      });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Certificate photo upload failed.' });
+    }
+  });
+
+  router.post('/certificates/verify-photo', optionalAuth, rateLimit('cert_photo_verify', 30, 60_000), (req: AuthedRequest, res: Response) => {
+    const { mimeType, fileBase64, codeOrSerial } = req.body || {};
+    if (!mimeType || !fileBase64) {
+      res.status(400).json({ error: 'Upload a certificate photo to verify.' });
+      return;
+    }
+
+    try {
+      const cleanB64 = String(fileBase64).includes(',') ? String(fileBase64).split(',')[1] : String(fileBase64);
+      const buffer = Buffer.from(cleanB64, 'base64');
+      if (buffer.length === 0 || buffer.length > MAX_DOC_BYTES) {
+        res.status(400).json({ error: 'Invalid image payload size.' });
+        return;
+      }
+      const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+      const db = getDb();
+
+      let matched = db
+        .prepare(
+          `SELECT id, verification_code as verificationCode, user_id as userId, holder_name as holderName,
+                  certificate_title as certificateTitle, certificate_type as certificateType,
+                  issuing_authority as issuingAuthority, issue_year as issueYear, serial_number as serialNumber,
+                  file_name as fileName, mime_type as mimeType, file_size as fileSize, sha256_hash as sha256Hash,
+                  verification_status as verificationStatus, integrity_score as integrityScore,
+                  checks_json as checksJson, verification_notes as verificationNotes,
+                  created_at as createdAt, verified_at as verifiedAt
+           FROM certificate_verifications WHERE sha256_hash = ? LIMIT 1`,
+        )
+        .get(sha256) as Record<string, any> | undefined;
+
+      if (!matched && codeOrSerial) {
+        const q = normalizeLookupQuery(String(codeOrSerial));
+        matched = db
+          .prepare(
+            `SELECT id, verification_code as verificationCode, user_id as userId, holder_name as holderName,
+                    certificate_title as certificateTitle, certificate_type as certificateType,
+                    issuing_authority as issuingAuthority, issue_year as issueYear, serial_number as serialNumber,
+                    file_name as fileName, mime_type as mimeType, file_size as fileSize, sha256_hash as sha256Hash,
+                    verification_status as verificationStatus, integrity_score as integrityScore,
+                    checks_json as checksJson, verification_notes as verificationNotes,
+                    created_at as createdAt, verified_at as verifiedAt
+             FROM certificate_verifications
+             WHERE UPPER(verification_code) = ? OR UPPER(REPLACE(serial_number, ' ', '')) = ?
+             LIMIT 1`,
+          )
+          .get(q, q) as Record<string, any> | undefined;
+      }
+
+      const integrity = evaluateCertificateIntegrity({
+        buffer,
+        declaredMime: String(mimeType),
+        holderName: matched?.holderName || 'Certificate Photo Inspection',
+        certificateTitle: matched?.certificateTitle || 'Uploaded Certificate Image',
+        issuingAuthority: matched?.issuingAuthority || 'Registry Check',
+        serialNumber: matched?.serialNumber || 'PHOTO-CHECK',
+      });
+
+      const exactHashMatch = !!matched && matched.sha256Hash === sha256;
+
+      res.json({
+        sha256Hash: sha256,
+        exactHashMatch,
+        integrityScore: integrity.integrityScore,
+        detectedFormat: integrity.detectedFormat,
+        checks: integrity.checks,
+        matchedCertificate: matched
+          ? {
+              ...matched,
+              checks: JSON.parse(matched.checksJson || '[]'),
+            }
+          : null,
+      });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || 'Could not inspect certificate photo.' });
+    }
+  });
+
+  router.post('/certificates/:id/verify', optionalAuth, (req: AuthedRequest, res: Response) => {
+    const db = getDb();
+    const row = db.prepare('SELECT * FROM certificate_verifications WHERE id = ?').get(req.params.id) as Record<string, any> | undefined;
+    if (!row) {
+      res.status(404).json({ error: 'Certificate record not found.' });
+      return;
+    }
+    if (!fs.existsSync(row.private_storage_path)) {
+      res.status(404).json({ error: 'Stored certificate photo is missing.' });
+      return;
+    }
+
+    const diskBuffer = fs.readFileSync(row.private_storage_path);
+    const diskHash = crypto.createHash('sha256').update(diskBuffer).digest('hex');
+    const hashMatches = diskHash === row.sha256_hash;
+
+    const integrity = evaluateCertificateIntegrity({
+      buffer: diskBuffer,
+      declaredMime: row.mime_type,
+      holderName: row.holder_name,
+      certificateTitle: row.certificate_title,
+      issuingAuthority: row.issuing_authority,
+      serialNumber: row.serial_number,
+      issueYear: row.issue_year,
+    });
+
+    const isAdmin = req.authUser?.role === 'admin';
+    const approveAsAdmin = isAdmin && req.body?.approve === true;
+    const now = nowIso();
+    let nextStatus = row.verification_status;
+    let verifiedAt = row.verified_at;
+    let notes = row.verification_notes;
+
+    if (approveAsAdmin && hashMatches && integrity.integrityScore >= 75) {
+      nextStatus = 'verified';
+      verifiedAt = now;
+      notes = String(req.body?.notes || 'Approved by KaamBridgeNepal (KBN) reviewer after photo & SHA-256 verification.').trim();
+      db.prepare(
+        `UPDATE certificate_verifications
+         SET verification_status = ?, verified_by = ?, verification_notes = ?, verified_at = ?, integrity_score = ?, checks_json = ?
+         WHERE id = ?`,
+      ).run(nextStatus, req.authUser!.id, notes, verifiedAt, integrity.integrityScore, JSON.stringify(integrity.checks), row.id);
+      writeAudit(req.authUser!.id, 'CERTIFICATE_VERIFIED', 'certificate_verification', row.id, {
+        code: row.verification_code,
+        sha256: diskHash,
+      });
+    } else {
+      db.prepare('UPDATE certificate_verifications SET integrity_score = ?, checks_json = ? WHERE id = ?').run(
+        integrity.integrityScore,
+        JSON.stringify(integrity.checks),
+        row.id,
+      );
+    }
+
+    res.json({
+      id: row.id,
+      verificationCode: row.verification_code,
+      hashMatches,
+      sha256Hash: diskHash,
+      integrityScore: integrity.integrityScore,
+      checks: integrity.checks,
+      verificationStatus: nextStatus,
+      verificationNotes: notes,
+      verifiedAt,
+    });
+  });
+
   // ---------------- SIGNED PRIVATE DOCUMENT VIEWING ----------------
   router.get('/documents/signed-url/:kind/:id', requireAuth, (req: AuthedRequest, res: Response) => {
     const { kind, id } = req.params;
@@ -2228,6 +2604,13 @@ export function createApiRouter() {
     } else if (kind === 'employer') {
       const row = db.prepare('SELECT user_id FROM employer_profiles WHERE id = ?').get(id) as { user_id: string } | undefined;
       ownerId = row?.user_id || null;
+    } else if (kind === 'certificate') {
+      const row = db.prepare('SELECT user_id FROM certificate_verifications WHERE id = ?').get(id) as { user_id: string | null } | undefined;
+      if (!row) {
+        res.status(404).json({ error: 'Certificate not found.' });
+        return;
+      }
+      ownerId = row.user_id || req.authUser!.id;
     }
 
     if (!ownerId) {
@@ -2240,7 +2623,7 @@ export function createApiRouter() {
     }
 
     const token = signDocAccessToken({
-      docKind: kind as 'identity' | 'academic' | 'employer',
+      docKind: kind as 'identity' | 'academic' | 'employer' | 'certificate',
       docId: id,
       viewerId: req.authUser!.id,
     });
@@ -2275,6 +2658,12 @@ export function createApiRouter() {
         | undefined;
       filePath = row?.verification_doc_path || null;
       mimeType = filePath?.endsWith('.svg') ? 'image/svg+xml' : 'application/pdf';
+    } else if (payload.docKind === 'certificate') {
+      const row = db.prepare('SELECT private_storage_path, mime_type FROM certificate_verifications WHERE id = ?').get(payload.docId) as
+        | { private_storage_path: string; mime_type: string }
+        | undefined;
+      filePath = row?.private_storage_path || null;
+      mimeType = row?.mime_type || mimeType;
     }
 
     if (!filePath || !fs.existsSync(filePath)) {
@@ -2282,13 +2671,15 @@ export function createApiRouter() {
       return;
     }
 
-    db.prepare('INSERT INTO document_access_logs (id, actor_id, document_kind, document_id, accessed_at) VALUES (?, ?, ?, ?, ?)').run(
-      uid('dal'),
-      payload.viewerId,
-      payload.docKind,
-      payload.docId,
-      nowIso(),
-    );
+    if (payload.viewerId && payload.viewerId !== 'guest') {
+      db.prepare('INSERT INTO document_access_logs (id, actor_id, document_kind, document_id, accessed_at) VALUES (?, ?, ?, ?, ?)').run(
+        uid('dal'),
+        payload.viewerId,
+        payload.docKind,
+        payload.docId,
+        nowIso(),
+      );
+    }
 
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Cache-Control', 'private, no-store');
@@ -2304,6 +2695,7 @@ export function createApiRouter() {
       pendingIdentity: (db.prepare("SELECT COUNT(*) as c FROM identity_verifications WHERE verification_status = 'pending_review'").get() as { c: number }).c,
       pendingAcademic: (db.prepare("SELECT COUNT(*) as c FROM academic_documents WHERE verification_status = 'pending_review'").get() as { c: number }).c,
       pendingEmployers: (db.prepare("SELECT COUNT(*) as c FROM employer_profiles WHERE verification_status = 'pending_review'").get() as { c: number }).c,
+      pendingCertificates: (db.prepare("SELECT COUNT(*) as c FROM certificate_verifications WHERE verification_status = 'pending_review'").get() as { c: number }).c,
       pendingJobs: (db.prepare("SELECT COUNT(*) as c FROM jobs WHERE status = 'Pending Approval' AND deleted_at IS NULL").get() as { c: number }).c,
       openReports: (db.prepare("SELECT COUNT(*) as c FROM reports WHERE status IN ('Open', 'Under Review')").get() as { c: number }).c,
       activeJobs: (db.prepare("SELECT COUNT(*) as c FROM jobs WHERE status = 'Active' AND deleted_at IS NULL").get() as { c: number }).c,
@@ -2328,6 +2720,18 @@ export function createApiRouter() {
          JOIN education_records er ON er.id = ad.education_record_id
          JOIN users u ON u.id = ad.user_id
          ORDER BY CASE WHEN ad.verification_status = 'pending_review' THEN 0 ELSE 1 END, ad.submitted_at DESC`,
+      )
+      .all();
+
+    const certificateQueue = db
+      .prepare(
+        `SELECT id, verification_code as verificationCode, user_id as userId, holder_name as holderName,
+                certificate_title as certificateTitle, certificate_type as certificateType,
+                issuing_authority as issuingAuthority, issue_year as issueYear, serial_number as serialNumber,
+                file_name as fileName, sha256_hash as sha256Hash, verification_status as verificationStatus,
+                integrity_score as integrityScore, verification_notes as verificationNotes, created_at as createdAt
+         FROM certificate_verifications
+         ORDER BY CASE WHEN verification_status = 'pending_review' THEN 0 ELSE 1 END, created_at DESC`,
       )
       .all();
 
@@ -2382,6 +2786,7 @@ export function createApiRouter() {
       users,
       identityQueue,
       academicQueue,
+      certificateQueue,
       employerQueue,
       jobsModeration,
       gigsModeration,
@@ -2491,6 +2896,39 @@ export function createApiRouter() {
         id,
       );
       writeAudit(req.authUser!.id, `EMPLOYER_${decision.toUpperCase()}`, 'employer_profile', id, { reason: cleanReason });
+    } else if (type === 'certificate') {
+      const row = db
+        .prepare('SELECT user_id, certificate_title, verification_code FROM certificate_verifications WHERE id = ?')
+        .get(id) as { user_id: string | null; certificate_title: string; verification_code: string } | undefined;
+      if (!row) {
+        res.status(404).json({ error: 'Certificate record not found.' });
+        return;
+      }
+      const nextStatus = decision === 'verified' ? 'verified' : 'rejected';
+      db.prepare(
+        'UPDATE certificate_verifications SET verification_status = ?, verified_by = ?, verification_notes = ?, verified_at = ? WHERE id = ?',
+      ).run(
+        nextStatus,
+        req.authUser!.id,
+        decision === 'verified' ? 'Verified by KaamBridgeNepal (KBN) reviewer.' : cleanReason,
+        decision === 'verified' ? now : null,
+        id,
+      );
+      if (row.user_id) {
+        createNotification(
+          row.user_id,
+          decision === 'verified' ? 'Certificate Verified' : 'Certificate Verification Update',
+          decision === 'verified'
+            ? `Your certificate "${row.certificate_title}" (${row.verification_code}) is now verified.`
+            : `"${row.certificate_title}" could not be verified. Reason: ${cleanReason}`,
+          'verification',
+          id,
+        );
+      }
+      writeAudit(req.authUser!.id, `CERTIFICATE_${decision.toUpperCase()}`, 'certificate_verification', id, {
+        code: row.verification_code,
+        reason: cleanReason,
+      });
     } else {
       res.status(400).json({ error: 'Unknown verification type.' });
       return;

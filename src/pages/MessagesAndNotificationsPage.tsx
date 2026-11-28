@@ -95,11 +95,11 @@ export const MessagesPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Dashboard</span>
         </button>
-        <h1 className="text-base font-bold">KaamSetu Messages</h1>
+        <h1 className="text-base font-bold">KaamBridgeNepal (KBN) Messages</h1>
         <span className="text-xs text-slate-500 dark:text-[#94A3B8]">{user?.fullName}</span>
       </header>
 
-      <div className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
+      <div className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 pb-20 lg:pb-6">
         {loading ? (
           <LoadingSkeleton rows={3} />
         ) : (
@@ -306,7 +306,7 @@ export const NotificationsPage: React.FC = () => {
         </button>
       </header>
 
-      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
+      <div className="max-w-3xl mx-auto p-4 sm:p-6 pb-20 lg:pb-6 space-y-4">
         <p className="text-xs text-slate-500 dark:text-[#94A3B8]">
           In-app notifications are active. Push &amp; SMS gateway hooks are ready for provider credentials.
         </p>

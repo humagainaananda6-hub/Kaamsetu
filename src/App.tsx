@@ -1,13 +1,20 @@
 import React, { useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { ToastContainer } from './components/ui/CommonUI';
-import { LandingPage } from './pages/LandingPage';
+import { MobileAppBottomNav } from './components/ui/Navigation';
+import { OfflineIndicator } from './components/ui/PWAComponents';
+import { AmbientBackground } from './components/ui/AmbientBackground';
+import { PageTransition3D } from './components/ui/PageTransition3D';
+import { Floating3DLauncher } from './components/ui/Floating3DBridge';
+import { AppHomePage } from './pages/AppHomePage';
 import { AuthPage } from './pages/AuthPage';
 import { OnboardingWizard } from './pages/OnboardingWizard';
 import { JobDiscoveryPage } from './pages/JobDiscoveryPage';
 import { JobDetailPage } from './pages/JobDetailPage';
 import { GigBoardPage } from './pages/GigBoardPage';
 import { GigDetailPage } from './pages/GigDetailPage';
+import { Showcase3DWallPage } from './pages/Showcase3DWallPage';
+import { CertificateVerificationPage } from './pages/CertificateVerificationPage';
 import { JobSeekerDashboard } from './pages/JobSeekerDashboard';
 import { EmployerDashboard } from './pages/EmployerDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -37,7 +44,7 @@ const ProtectedRoute: React.FC<{
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex items-center justify-center text-sm text-slate-500 dark:text-[#94A3B8]">
-        Loading workspace...
+        Loading KaamBridgeNepal (KBN) workspace...
       </div>
     );
   }
@@ -47,81 +54,111 @@ const ProtectedRoute: React.FC<{
 };
 
 const RouterView: React.FC = () => {
-  const { currentPath } = useApp();
+  const { currentPath, navDirection } = useApp();
   const pathname = currentPath.split('?')[0] || '/';
 
-  if (pathname === '/') return <LandingPage />;
-  if (pathname === '/auth') return <AuthPage />;
-  if (pathname === '/onboarding') {
-    return (
-      <ProtectedRoute>
-        <OnboardingWizard />
-      </ProtectedRoute>
-    );
-  }
+  const showMobileAppNav =
+    !pathname.startsWith('/seeker') &&
+    !pathname.startsWith('/employer') &&
+    !pathname.startsWith('/admin') &&
+    pathname !== '/auth' &&
+    pathname !== '/onboarding';
 
-  if (pathname === '/jobs') return <JobDiscoveryPage />;
-  if (pathname.startsWith('/jobs/')) {
-    return <JobDetailPage jobId={pathname.slice('/jobs/'.length)} />;
-  }
+  const hideFloatingLauncher =
+    pathname === '/verify' ||
+    pathname === '/auth' ||
+    pathname === '/onboarding' ||
+    pathname.startsWith('/admin');
 
-  if (pathname === '/gigs') return <GigBoardPage />;
-  if (pathname.startsWith('/gigs/')) {
-    return <GigDetailPage gigId={pathname.slice('/gigs/'.length)} />;
-  }
+  const renderPage = () => {
+    if (pathname === '/') return <AppHomePage />;
+    if (pathname === '/auth') return <AuthPage />;
+    if (pathname === '/onboarding') {
+      return (
+        <ProtectedRoute>
+          <OnboardingWizard />
+        </ProtectedRoute>
+      );
+    }
 
-  if (pathname.startsWith('/profile/')) {
-    return <PublicProfilePage userId={pathname.slice('/profile/'.length)} />;
-  }
+    if (pathname === '/verify') return <CertificateVerificationPage />;
+    if (pathname === '/showcase') return <Showcase3DWallPage />;
 
-  if (pathname.startsWith('/seeker')) {
-    return (
-      <ProtectedRoute allowedRoles={['job_seeker']}>
-        <JobSeekerDashboard />
-      </ProtectedRoute>
-    );
-  }
+    if (pathname === '/jobs') return <JobDiscoveryPage />;
+    if (pathname.startsWith('/jobs/')) {
+      return <JobDetailPage jobId={pathname.slice('/jobs/'.length)} />;
+    }
 
-  if (pathname.startsWith('/employer')) {
-    return (
-      <ProtectedRoute allowedRoles={['employer']}>
-        <EmployerDashboard />
-      </ProtectedRoute>
-    );
-  }
+    if (pathname === '/gigs') return <GigBoardPage />;
+    if (pathname.startsWith('/gigs/')) {
+      return <GigDetailPage gigId={pathname.slice('/gigs/'.length)} />;
+    }
 
-  if (pathname.startsWith('/admin')) {
-    return (
-      <ProtectedRoute allowedRoles={['admin']}>
-        <AdminDashboard />
-      </ProtectedRoute>
-    );
-  }
+    if (pathname.startsWith('/profile/')) {
+      return <PublicProfilePage userId={pathname.slice('/profile/'.length)} />;
+    }
 
-  if (pathname === '/messages') {
-    return (
-      <ProtectedRoute>
-        <MessagesPage />
-      </ProtectedRoute>
-    );
-  }
+    if (pathname.startsWith('/seeker')) {
+      return (
+        <ProtectedRoute allowedRoles={['job_seeker']}>
+          <JobSeekerDashboard />
+        </ProtectedRoute>
+      );
+    }
 
-  if (pathname === '/notifications') {
-    return (
-      <ProtectedRoute>
-        <NotificationsPage />
-      </ProtectedRoute>
-    );
-  }
+    if (pathname.startsWith('/employer')) {
+      return (
+        <ProtectedRoute allowedRoles={['employer']}>
+          <EmployerDashboard />
+        </ProtectedRoute>
+      );
+    }
 
-  return <LandingPage />;
+    if (pathname.startsWith('/admin')) {
+      return (
+        <ProtectedRoute allowedRoles={['admin']}>
+          <AdminDashboard />
+        </ProtectedRoute>
+      );
+    }
+
+    if (pathname === '/messages') {
+      return (
+        <ProtectedRoute>
+          <MessagesPage />
+        </ProtectedRoute>
+      );
+    }
+
+    if (pathname === '/notifications') {
+      return (
+        <ProtectedRoute>
+          <NotificationsPage />
+        </ProtectedRoute>
+      );
+    }
+
+    return <AppHomePage />;
+  };
+
+  return (
+    <>
+      <PageTransition3D transitionKey={pathname} direction={navDirection}>
+        {renderPage()}
+      </PageTransition3D>
+      {showMobileAppNav && <MobileAppBottomNav />}
+      <Floating3DLauncher hidden={hideFloatingLauncher} />
+    </>
+  );
 };
 
 export function App() {
   return (
     <AppProvider>
+      <AmbientBackground />
       <RouterView />
       <ToastContainer />
+      <OfflineIndicator />
     </AppProvider>
   );
 }
